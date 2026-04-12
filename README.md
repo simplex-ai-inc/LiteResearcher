@@ -37,7 +37,7 @@ Three pillars enable scalable Agentic RL:
 ## Repository Structure
 
 ```
-├── eval/                   # Evaluation code (released)
+├── Eval/                   # Evaluation code (released)
 │   ├── src/
 │   │   ├── agent.py        # ReAct agent (reasoning + tool calling)
 │   │   ├── prompts.py      # System and judge prompts
@@ -49,15 +49,16 @@ Three pillars enable scalable Agentic RL:
 │   ├── .env.example        # Configuration template
 │   ├── requirements.txt
 │   └── README.md
-├── training/               # RL training code (coming soon)
-├── data_gen/               # Data synthesis pipeline (coming soon)
+├── Training/               # RL training code (coming soon)
+├── DataGen/                # Data synthesis pipeline (coming soon)
+├── Environment/            # Local search/browse env setup (coming soon)
 └── docs/                   # Project page
 ```
 
 ## Quick Start — Evaluation
 
 ```bash
-cd eval
+cd Eval
 pip install -r requirements.txt
 cp .env.example .env
 # Edit .env: set MODEL, SERPER_KEY_ID, SCRAPEDO_API_KEY
@@ -69,7 +70,7 @@ bash scripts/start_sglang.sh
 bash scripts/run_all.sh
 ```
 
-See [`eval/README.md`](eval/README.md) for detailed configuration and usage.
+See [`Eval/README.md`](Eval/README.md) for detailed configuration and usage.
 
 ## Release Plan
 
