@@ -37,21 +37,10 @@ Three pillars enable scalable Agentic RL:
 ## Repository Structure
 
 ```
-├── Eval/                   # Evaluation code (released)
-│   ├── src/
-│   │   ├── agent.py        # ReAct agent (reasoning + tool calling)
-│   │   ├── prompts.py      # System and judge prompts
-│   │   ├── run_inference.py # Parallel evaluation runner
-│   │   ├── search_server.py # Google Serper search service
-│   │   └── browser_server.py# Webpage fetch + LLM summarize service
-│   ├── scripts/            # Shell scripts for one-click eval
-│   ├── data/               # Example dataset
-│   ├── .env.example        # Configuration template
-│   ├── requirements.txt
-│   └── README.md
-├── Training/               # RL training code (coming soon)
-├── DataGen/                # Data synthesis pipeline (coming soon)
-├── Environment/            # Local search/browse env setup (coming soon)
+├── Eval/                   # Evaluation (released)
+├── Training/               # RL training (coming soon)
+├── DataGen/                # Data synthesis (coming soon)
+├── Environment/            # Local search/browse environment (coming soon)
 └── docs/                   # Project page
 ```
 
