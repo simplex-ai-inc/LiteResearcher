@@ -1,0 +1,42 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+env/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.tex
+*.bib
+*.bst
+*.sty
+*.cls
+figures_bg/
+
+# Backup
+icml_backup/
+plot_stage_comparison_backup.py
