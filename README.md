@@ -4,7 +4,7 @@
 
 ### A Scalable Agentic RL Training Framework for Deep Research Agent
 
-[Paper](#) · [Project Page](https://wanli-lee.github.io/LiteResearcher/) · [Model (coming soon)](#)
+[Paper](#) · [Project Page](https://wanli-lee.github.io/LiteResearcher/) · [Model](https://huggingface.co/wanlilll/LiteResearcher-4B)
 
 </div>
 
