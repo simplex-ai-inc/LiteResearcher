@@ -99,14 +99,16 @@
 \textbf{Zheng Liu}$^{3,\dagger}$,\enspace
 \textbf{Pan Zhang}$^{2}$\\[2pt]
 \textbf{Wei Chen}$^{1}$,\enspace
-\textbf{Bo Zhang}$^{2,\dagger}$ \\[6pt]
-$^1$\,Zhejiang University \quad $^2$\,Simplex AI \quad $^3$\,Beijing Academy of Artificial Intelligence \\[3pt]
-{\small \texttt{\{wanli\_li@zju.edu.cn, tonyzhang@simplexai.com\}}} \\[4pt]
-{\small $^*$Equal contribution. Work done during internship at Simplex AI. $^\dagger$Corresponding authors.}
+\textbf{Bo Zhang}$^{1,2,\dagger}$ \\[6pt]
+$^1$\,Zhejiang University \quad $^2$\,Simplex AI \quad $^3$\,The Hong Kong Polytechnic University \\[3pt]
+{\small \texttt{\{wanli\_li@zju.edu.cn, tonyzhang@simplexai.com\}}}
 \end{minipage}
 }
 \usepackage{lineno}
 \begin{document}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[1]{Equal contribution. Work done during internship at Simplex AI.}
+\footnotetext[2]{Corresponding authors.}
 
 \ifcolmsubmission
 \linenumbers
@@ -117,7 +119,7 @@ $^1$\,Zhejiang University \quad $^2$\,Simplex AI \quad $^3$\,Beijing Academy of 
 \thispagestyle{fancy}
 
 \begin{abstract}
-Reinforcement Learning (RL) has emerged as a powerful training paradigm for LLM-based agents. However, scaling agentic RL for deep research remains constrained by two coupled challenges: hand-crafted synthetic data fail to elicit genuine real-world search capabilities, and real-world search dependency during RL training introduces instability and expensive cost, which limit the scalability of Agentic RL. \textbf{LiteResearcher} is a training framework to make Agentic RL scalable: by constructing a lite virtual world that mirrors the real-world search dynamics, we enabled a continuously improving training recipe that empowers a tiny search agent to outperform large-scale open-source and commercial models (e.g. Tongyi DeepResearch and Claude-4.5 Sonnet). Specifically, on most common benchmarks like GAIA and Xbench, our \textbf{LiteResearcher-4B} achieves the open-source state-of-the-art results of \textbf{71.3\%} and \textbf{78.0\%} respectively, proving that scalable RL training is essential for Deep Research Agents. 
+Reinforcement Learning (RL) has emerged as a powerful training paradigm for LLM-based agents. However, scaling agentic RL for deep research remains constrained by two coupled challenges: hand-crafted synthetic data fail to elicit genuine real-world search capabilities, and real-world search dependency during RL training introduces instability and expensive cost, which limit the scalability of Agentic RL. \textbf{LiteResearcher} is a training framework to make Agentic RL scalable: by constructing a lite virtual world that mirrors the real-world search dynamics, we enabled a continuously improving training recipe that empowers a tiny search agent to outperform large-scale open-source and commercial models (e.g. Tongyi DeepResearch and Claude-4.5 Sonnet). Specifically, on most common benchmarks like GAIA and Xbench, our \textbf{LiteResearcher-4B} achieves the open-source state-of-the-art results of \textbf{71.3\%} and \textbf{78.0\%} respectively, demonstrating that scalable RL training is a key enabler for Deep Research Agents. 
 \end{abstract}
 
 
@@ -133,18 +135,18 @@ Recent advances in reinforcement learning (RL) on reasoning models~\citep{liu202
 
 However, existing works in the domain of Deep Research have yet to realize such scalable RL training. Online RL frameworks~\citep{zheng2025deepresearcher,li2025webthinker} interact directly with the live internet, introducing significant training variance and prohibitive costs that limit continuous capability growth. Local retrieval-based systems~\citep{jin2025search,li2025search,sun2025zerosearch} are typically confined to a narrow corpus, making it impossible to replicate the complex search dynamics of the diverse internet. Meanwhile, current real-web graph-based data synthesis methods~\citep{jin2025search,li2025websailor,gao2025beyond} are over-engineered reasoning structures, focusing on handcrafted logic but ignoring the diversity of atomic search techniques required for deep research such as cross-verification and enumeration.
 
- We argue that scaling agentic RL for Deep Research requires a virtual world that has identical structure to the live internet but is isolated in execution: while twin architecture ensures that policies optimized in a virtual environment can generalize to the open web, isolation shields the training process from the high variance and stochasticity of environmental noise.
+ We argue that scaling agentic RL for Deep Research requires a virtual world that mirrors the structure of the live internet but is isolated in execution: while twin architecture ensures that policies optimized in a virtual environment can generalize to the open web, isolation shields the training process from the high variance and stochasticity of environmental noise.
  
-In this paper, we present \textbf{LiteResearcher}, an Agentic RL training framework designed to construct a \textbf{virtual world with identical architecture of real web}. We follow these steps to realize the scaling potential of agentic RL: (1) Synthesize real search data; (2) Simulate search environment; (3) Achieve sustained improvements through curriculum RL. 
+In this paper, we present \textbf{LiteResearcher}, an Agentic RL training framework designed to construct a \textbf{virtual world that mirrors real-world web architecture}. We follow these steps to realize the scaling potential of agentic RL: (1) Synthesize real search data; (2) Simulate search environment; (3) Achieve sustained improvements through curriculum RL. 
 
 The foundation of this virtual world is generating realistic training tasks. To capture the diversity of information seeking in real-world user queries, we prioritize the scale of information sources in our virtual world. We find that by scaling up information sources, even a \textbf{simple-but-effective} data synthesis can yield a realistic distribution of training tasks. 
 
-Crucially, handling these synthetic tasks requires a corresponding execution environment. We simulate a realistic search environment by enriching our corpus with these tasks. For every synthetic task, we perform a targeted expansion of the local webpage corpus by searching and fetching related real-world webpages, which then construct the local search and browse tool. This ensures that for any given training task, the local search and browse tools provide a distribution that is identical to the open web, allowing the agent to obtain real-web atom capabilities in a controlled environment.
+Crucially, handling these synthetic tasks requires a corresponding execution environment. We simulate a realistic search environment by enriching our corpus with these tasks. For every synthetic task, we perform a targeted expansion of the local webpage corpus by searching and fetching related real-world webpages, which then construct the local search and browse tool. This ensures that for any given training task, the local search and browse tools provide search dynamics analogous to the open web, allowing the agent to obtain real-web atom capabilities in a controlled environment.
 
 Even with synthetic tasks and tools, training can still saturate if the model is trapped at a certain difficulty threshold on correctly solving
 easy tasks while completely failing complex ones. We apply a difficulty-aware curriculum RL which progressively enhances both task difficulty and context length across training stages. At each stage, we only keep the synthetic tasks that the current model can partially solve, discarding both trivially easy and impossibly hard instances, thereby providing consistent training signal for improvement.
 
-Our tiny search agent \textbf{LiteResearcher-4B} achieves 71.3\% on GAIA~\citep{mialon2023gaia} and 78\% on Xbench~\citep{chen2025xbench}, surpassing open-source agents up to $8\times$ larger such as Tongyi DeepSearch 30B (70.9\%/75\%) and WebSailor 30B (53.2\%/53.3\%), while matching or exceeding proprietary systems including Claude-4.5-Sonnet (71.2\%/66\%) and GLM-4.6 (71.9\%/70\%). This proves that scalable RL can obtain a powerful on-device deep research agent. The entire training framework will be open-sourced to the community.
+Our tiny search agent \textbf{LiteResearcher-4B} achieves 71.3\% on GAIA~\citep{mialon2023gaia} and 78\% on Xbench~\citep{chen2025xbench}, surpassing open-source agents up to $8\times$ larger such as Tongyi DeepSearch 30B (70.9\%/75\%) and WebSailor 30B (53.2\%/53.3\%), while matching or exceeding proprietary systems including Claude-4.5-Sonnet (71.2\%/66\%) and GLM-4.6 (71.9\%/70\%). These results demonstrate that scalable RL can yield a powerful on-device deep research agent. The entire training framework will be open-sourced to the community.
 
 \section{Related Work}
 
@@ -178,7 +180,7 @@ After collecting sufficient information, the agent terminates environment intera
 \section{Methods: Towards Scalable Training}
 
 % ==========================================
-To explore the scaling law of Agentic Deep Research, we aim to establish a scalable training framework as a mandatory start. Current paradigms relying on high-latency, unstable online interactions fundamentally bottleneck this process. In this section, we present our LiteResearcher framework which decouples agent evolution from the open web while ensuring generalization with real-world web dynamics. As illustrated in Figure~\ref{fig:system_architecture}, the ecosystem is built upon three core pillars:
+To explore the scaling potential of Agentic Deep Research, we aim to establish a scalable training framework as a mandatory start. Current paradigms relying on high-latency, unstable online interactions fundamentally bottleneck this process. In this section, we present our LiteResearcher framework which decouples agent evolution from the open web while ensuring generalization with real-world web dynamics. As illustrated in Figure~\ref{fig:system_architecture}, the ecosystem is built upon three core pillars:
 
 
 (1) \textbf{Co-construct Training Data and Corpus Pipeline}: To achieve \textbf{diversity} in the data distribution and \textbf{scalability} in data quantity, we propose a unified framework that co-evolves the training data and the local corpus. 
@@ -365,9 +367,11 @@ All experiments are initialized from Qwen-4B-Thinking-2507~\citep{yang2025qwen3}
 
 Table~\ref{tab:main_results_1} summarizes the performance of \textbf{LiteResearcher (4B)} across eight benchmarks spanning general-purpose agentic search, multi-hop reasoning, and cross-lingual deep research. From the results, we make the following key observations.
 
-\textbf{A 4B model trained locally approaches commercial-level performance.} LiteResearcher achieves \textbf{71.3\%} on GAIA-Text, matching Claude-4.5-Sonnet (71.2\%) and surpassing Tongyi DeepResearch 30B (70.9\%) and other open-source models with 8--32B parameters. On Frames, it scores 83.1\%, outperforming Claude-4-Sonnet (80.7\%) and DeepSeek-V3.2 (80.2\%). On Xbench-DS, a comprehensive bilingual benchmark, LiteResearcher reaches 78\%, the highest among all open-source models and surpassing OpenAI-GPT-5-high (77.8\%). These results suggest that the data--environment bottleneck---not model scale---is the primary barrier to strong agentic search performance.
+\textbf{A 4B model trained locally approaches commercial-level performance.} LiteResearcher achieves \textbf{71.3\%} on GAIA-Text, matching Claude-4.5-Sonnet (71.2\%) and surpassing Tongyi DeepResearch 30B (70.9\%) and other open-source models with 8--32B parameters. On Frames, it scores 83.1\%, outperforming Claude-4-Sonnet (80.7\%) and DeepSeek-V3.2 (80.2\%). On Xbench-DS, a comprehensive bilingual benchmark, LiteResearcher reaches 78\%, the highest among all open-source models and surpassing OpenAI-GPT-5-high (77.8\%). These results suggest that the data--environment bottleneck is at least as important as model scale for strong agentic search performance.
 
-\textbf{Local training matches or exceeds online training.} AgentCPM-Explore-4B~\citep{chen2026agentcpm}, a concurrent 4B model trained on the live internet, is outperformed by LiteResearcher on all 8 benchmarks (e.g., GAIA 71.3\% vs.\ 63.9\%, Xbench 78.0\% vs.\ 70.0\%). AgentCPM-Explore further reports that online environment instability is a major source of reward noise, limiting its RL gains to only +3.8\% over the SFT baseline on GAIA. Our deterministic local environment eliminates such noise, sustaining over 1,000 stable RL steps with monotonic improvements.
+\textbf{Local training matches or exceeds online training.} AgentCPM-Explore-4B~\citep{chen2026agentcpm}, a concurrent 4B model trained on the live internet, is outperformed by LiteResearcher on all 8 benchmarks (e.g., GAIA 71.3\% vs.\ 63.9\%, Xbench 78.0\% vs.\ 70.0\%). AgentCPM-Explore further reports that online environment instability is a major source of reward noise, limiting its RL gains to only +3.8\% over the SFT baseline on GAIA. Our deterministic local environment eliminates such noise, sustaining over 700 stable RL steps with monotonic improvements.
+
+\textbf{Context length and BrowseComp.} BrowseComp requires exceptionally deep browsing chains, often exceeding 20 pages per query. For a 4B model, this frequently exhausts the 128K context window, causing performance degradation (20.3\%/28.4\% without memory, Table~\ref{tab:sft_baseline}). A memory mechanism that summarizes prior tool interactions at 64K mitigates this, improving results to 27.5\%/32.5\%. This gap highlights long-context utilization as a key limitation of small-scale agents, and we report both configurations for transparency.
 
 \subsection{Analysis and Ablations}
 
@@ -442,12 +446,14 @@ Single-stage RL saturates once the model exhausts tasks at its current difficult
     \label{fig:stage_ablation}
 \end{figure}
 
+\paragraph{Contribution of RL over SFT.}
+The SFT stage uses trajectories generated by Tongyi DeepResearch as the teacher model (Appendix~\ref{sec:app_sft}). As shown in Table~\ref{tab:sft_baseline}, SFT alone yields 55.6\% on GAIA---still 15.3 points below the teacher's own 70.9\%. The RL stage not only closes this gap but surpasses it, reaching 71.3\% (+15.7 over SFT), with consistent gains across all eight benchmarks. This indicates that the primary performance driver is the RL training framework rather than teacher distillation.
 
 \section{Conclusions}
 
 
 
-In this paper, we presented \textbf{LiteResearcher}, an agentic RL training framework that resolves the critical bottlenecks of data diversity and environment stability by constructing an isolated virtual world. Crucially, our work yields three key insights for the future of deep research agents. First, we demonstrate that \textbf{Agentic RL can indeed drive continuous capability scaling}. The training saturation observed in prior works is due to reliance on high-variance live environments or a narrow local corpus, rather than a limitation of the RL paradigm itself. Second, we reveal that a \textbf{simple but scalable synthetic data pipeline}, driven by the continuous expansion of real-world information sources, is significantly more effective than over-engineered, handcrafted reasoning structures. Finally, trained entirely locally at zero marginal cost, our compact LiteResearcher-4B achieves 71.3\% on GAIA and 78\% on Xbench-DS. By matching or exceeding commercial models, we prove that \textbf{scalable RL training, not merely model scale, is the key enabler for strong deep research capabilities}. We will open-source the entire training framework to facilitate future research on efficient and accessible agent development.
+In this paper, we presented \textbf{LiteResearcher}, an agentic RL training framework that resolves the critical bottlenecks of data diversity and environment stability by constructing an isolated virtual world. Crucially, our work yields three key insights for the future of deep research agents. First, we demonstrate that \textbf{Agentic RL can drive sustained capability improvement}. The training saturation observed in prior works is due to reliance on high-variance live environments or a narrow local corpus, rather than a limitation of the RL paradigm itself. Second, we reveal that a \textbf{simple but scalable synthetic data pipeline}, driven by the continuous expansion of real-world information sources, is significantly more effective than over-engineered, handcrafted reasoning structures. Finally, trained entirely locally at zero marginal cost, our compact LiteResearcher-4B achieves 71.3\% on GAIA and 78\% on Xbench-DS. By matching or exceeding commercial models, our results suggest that \textbf{scalable RL training, beyond model scale alone, is a critical enabler for strong deep research capabilities}. We will open-source the entire training framework to facilitate future research on efficient and accessible agent development.
 
 
 \newpage
@@ -912,11 +918,10 @@ Table~\ref{tab:rl_data_mixture} summarizes the data composition used in each RL 
 \subsection{Reward Function}
 \label{sec:reward_prompt}
 
-During RL training, each rollout receives a binary reward based on the correctness of the agent's final answer. The agent is required to produce its answer within \texttt{<answer>...</answer>} tags. We first attempt an LLM-based semantic judgment and fall back to normalized exact match (EM) if the judge fails.
+During RL training, each rollout receives a binary reward based on the correctness of the agent's final answer. The agent is required to produce its answer within \texttt{<answer>...</answer>} tags. We use \texttt{Qwen3-30B-A3B-Instruct} as the reward judge for LLM-based semantic judgment.
 
 
 
-The EM fallback normalizes both the prediction and the ground truth by lowercasing, removing articles and punctuation, and collapsing whitespace before comparison.
 \begin{promptbox}{LLM Judge Evaluation Prompt}
 You are an evaluation assistant. Please determine if the predicted answer is semantically equivalent to the labeled answer.\\[1ex]
 \textbf{Question:} \texttt{\{question\}}\\[0.5ex]
