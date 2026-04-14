@@ -84,7 +84,7 @@ See [`Inference/README.md`](Inference/README.md) for detailed configuration and 
 
 - [x] Evaluation code
 - [x] Project page
-- [ ] Model weights (LiteResearcher-4B)
+- [x] Model weights (LiteResearcher-4B)
 - [ ] Training code (GRPO + curriculum RL)
 - [ ] Data synthesis pipeline
 - [ ] Local search/browse environment setup
