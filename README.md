@@ -4,7 +4,7 @@
 
 ### A Scalable Agentic RL Training Framework for Deep Research Agent
 
-[Paper](#) · [Project Page](https://simplex-ai-inc.github.io/LiteResearcher/) · [Model](https://huggingface.co/lev8-simplexai/LiteResearcher-4B)
+[Paper](#) · [Project Page](https://simplex-ai-inc.github.io/LiteResearcher/) · [Model](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B)
 
 </div>
 
