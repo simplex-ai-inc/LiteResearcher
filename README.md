@@ -4,7 +4,7 @@
 
 ### A Scalable Agentic RL Training Framework for Deep Research Agent
 
-[Paper](#) · [Project Page](https://simplex-ai-inc.github.io/LiteResearcher/) · [Model](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B)
+[Paper](https://arxiv.org/abs/2604.17931) · [Project Page](https://simplex-ai-inc.github.io/LiteResearcher/) · [Model](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B)
 
 </div>
 
@@ -95,6 +95,7 @@ See [`Inference/README.md`](Inference/README.md) for detailed configuration and 
 @article{li2026literesearcher,
   title={LiteResearcher: A Scalable Agentic RL Training Framework for Deep Research Agent},
   author={Li, Wanli and Qu, Bince and Pan, Bo and Zhang, Jianyu and Liu, Zheng and Zhang, Pan and Chen, Wei and Zhang, Bo},
+  journal={arXiv preprint arXiv:2604.17931},
   year={2026}
 }
 ```
