@@ -94,7 +94,7 @@ See [`Inference/README.md`](Inference/README.md) for detailed configuration and 
 ```bibtex
 @article{li2026literesearcher,
   title={LiteResearcher: A Scalable Agentic RL Training Framework for Deep Research Agent},
-  author={Li, Wanli and Qu, Bince and Pan, Bo and Zhang, Jianyu and Liu, Zheng and Zhang, Pan and Chen, Wei and Zhang, Bo},
+  author={Wanli Li and Bince Qu and Bo Pan and Jianyu Zhang and Zheng Liu and Pan Zhang and Wei Chen and Bo Zhang},
   journal={arXiv preprint arXiv:2604.17931},
   year={2026}
 }
