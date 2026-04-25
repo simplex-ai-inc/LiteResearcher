@@ -274,10 +274,9 @@
   <section>
     <h2>TL;DR</h2>
     <p style="font-size:1.08rem; color:#1a1a1a;">
-      We train a low-cost, scalable <strong>4B-parameter</strong> deep research agent using agentic RL in a virtual world environment.
-      <strong>LiteResearcher-4B</strong> achieves <strong>71.3%</strong> on GAIA and <strong>78%</strong> on Xbench &mdash;
-      matching Claude-4.5-Sonnet and outperforming open-source models up to <strong>8&times; larger</strong>.
-      Its RL stage runs entirely in a local search/browse environment, requiring no external APIs and incurring zero marginal API cost.
+      <strong>LiteResearcher-4B</strong> is a 4B deep research agent trained with zero marginal RL API cost,
+      outperforming 30B open-source deep research agents and surpassing Claude-4.5-Sonnet and GPT-5-high on selected benchmarks.
+      Its RL stage runs entirely in a local search/browse environment, enabling 73.2M tool calls without live search or browse API consumption.
     </p>
   </section>
 
@@ -286,29 +285,19 @@
     <h2>Key Results</h2>
     <div class="highlights">
       <div class="highlight-card">
-        <span class="number">71.3%</span>
-        <div class="label">GAIA-Text</div>
-        <div class="detail">= Claude-4.5-Sonnet (71.2%)</div>
+        <span class="number">71.3 / 78.0</span>
+        <div class="label">GAIA / Xbench-DS</div>
+        <div class="detail">open-source SOTA; beats 30B agents</div>
       </div>
       <div class="highlight-card">
-        <span class="number">78.0%</span>
-        <div class="label">Xbench-DS</div>
-        <div class="detail">&gt; Tongyi Deepsearch 30B (75.0%)</div>
+        <span class="number">+15.7</span>
+        <div class="label">GAIA points from RL</div>
+        <div class="detail">SFT 55.6 &rarr; RL 71.3; AgentCPM +3.8</div>
       </div>
       <div class="highlight-card">
-        <span class="number">83.1%</span>
-        <div class="label">Frames</div>
-        <div class="detail">&gt; Claude-4-Sonnet (80.7%)</div>
-      </div>
-      <div class="highlight-card">
-        <span class="number">4B</span>
-        <div class="label">Parameters</div>
-        <div class="detail">8&ndash;32&times; smaller than peers</div>
-      </div>
-      <div class="highlight-card">
-        <span class="number">0 API</span>
-        <div class="label">RL Stage</div>
-        <div class="detail">fully local search/browse tools</div>
+        <span class="number">73.2M</span>
+        <div class="label">local RL tool calls</div>
+        <div class="detail">$0 marginal API cost vs. $59K&ndash;$243K live web</div>
       </div>
     </div>
     <figure class="figure">
