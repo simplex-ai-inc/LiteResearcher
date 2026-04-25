@@ -13,11 +13,15 @@
 
 </div>
 
-**LiteResearcher** is a training framework that makes Agentic RL scalable for deep research agents. By constructing a lite virtual world that mirrors real-world search dynamics, we enable a continuously improving training recipe that empowers a tiny 4B search agent to outperform large-scale open-source and commercial models.
+**LiteResearcher-4B is a 4B deep research agent trained with zero marginal RL API cost, outperforming 30B open-source deep research agents and surpassing Claude-4.5-Sonnet and GPT-5 on selected benchmarks.**
 
-**LiteResearcher-4B** is a low-cost, scalable 4B deep research agent: its RL stage runs entirely inside a local search/browse environment, requiring no external APIs during RL and incurring zero marginal API cost.
+| Key number | Result | Why it matters |
+|------------|--------|----------------|
+| **Open-source SOTA** | **71.3% GAIA** / **78.0% Xbench-DS** | Beats 30B open-source agents on the headline deep-research benchmarks and surpasses Claude-4.5-Sonnet on GAIA and GPT-5-high on Xbench-DS. |
+| **+15.7 GAIA points from RL** | SFT **55.6%** → RL **71.3%** | Shows the gain comes from scalable RL; AgentCPM-Explore reports only **+3.8** points when training with live web interaction. |
+| **73.2M local tool calls** | **$0 marginal API cost** | The same RL tool-call volume would cost **$59K-$243K** with live web search/browse APIs. |
 
-**LiteResearcher-4B** achieves **71.3%** on GAIA and **78.0%** on Xbench-DeepSearch, surpassing models up to 8× larger (Tongyi DeepSearch 30B, WebSailor 30B) and matching commercial systems (Claude-4.5-Sonnet, GPT-5).
+**LiteResearcher** makes Agentic RL scalable by replacing live-web interaction during RL with a stable local search/browse environment that mirrors real-world search dynamics while eliminating per-call API cost.
 
 ## Results
 
