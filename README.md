@@ -17,10 +17,8 @@
 ## Results
 
 <div align="center">
-<img src="figures/table_main_results.png" width="95%">
+<img src="figures/table_main_results.png" width="100%">
 </div>
-
-Table 2 from the paper compares LiteResearcher-4B against commercial models and open-source deep research agents across eight benchmarks. Best open-source results are in **bold**. Results with * use a 64k context window with a memory mechanism.
 
 ## Method Overview
 
