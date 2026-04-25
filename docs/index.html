@@ -274,9 +274,10 @@
   <section>
     <h2>TL;DR</h2>
     <p style="font-size:1.08rem; color:#1a1a1a;">
-      We train a <strong>4B-parameter</strong> deep research agent using scalable agentic RL in a virtual world environment.
+      We train a low-cost, scalable <strong>4B-parameter</strong> deep research agent using agentic RL in a virtual world environment.
       <strong>LiteResearcher-4B</strong> achieves <strong>71.3%</strong> on GAIA and <strong>78%</strong> on Xbench &mdash;
       matching Claude-4.5-Sonnet and outperforming open-source models up to <strong>8&times; larger</strong>.
+      Its RL stage runs entirely in a local search/browse environment, requiring no external APIs and incurring zero marginal API cost.
     </p>
   </section>
 
@@ -304,6 +305,11 @@
         <div class="label">Parameters</div>
         <div class="detail">8&ndash;32&times; smaller than peers</div>
       </div>
+      <div class="highlight-card">
+        <span class="number">0 API</span>
+        <div class="label">RL Stage</div>
+        <div class="detail">fully local search/browse tools</div>
+      </div>
     </div>
     <figure class="figure">
       <img src="static/compare.png" alt="Performance comparison across models">
@@ -318,7 +324,7 @@
       Reinforcement Learning (RL) has emerged as a powerful training paradigm for LLM-based agents. However, scaling agentic RL for deep research remains constrained by two coupled challenges: hand-crafted synthetic data fail to elicit genuine real-world search capabilities, and real-world search dependency during RL training introduces instability and expensive cost, which limit the scalability of Agentic RL.
     </p>
     <p>
-      <strong>LiteResearcher</strong> is a training framework to make Agentic RL scalable: by constructing a lite virtual world that mirrors the real-world search dynamics, we enabled a continuously improving training recipe that empowers tiny search agent to outperform large-scale open-source and commercial models (e.g. Tongyi DeepResearch and Claude-4.5 Sonnet). Specifically, on most common benchmarks like GAIA and Xbench, our <strong>LiteResearcher-4B</strong> achieves the open-source state-of-the-art results of <strong>71.3%</strong> and <strong>78.0%</strong> respectively, proving that scalable RL training is essential for Deep Research Agents.
+      <strong>LiteResearcher</strong> is a training framework to make Agentic RL scalable and low-cost: by constructing a lite virtual world that mirrors the real-world search dynamics, we enabled a continuously improving training recipe that empowers a tiny search agent to outperform large-scale open-source and commercial models (e.g. Tongyi DeepResearch and Claude-4.5 Sonnet). The RL stage runs entirely in a local search/browse environment, removing external API consumption during RL while preserving realistic tool-use dynamics. Specifically, on most common benchmarks like GAIA and Xbench, our <strong>LiteResearcher-4B</strong> achieves the open-source state-of-the-art results of <strong>71.3%</strong> and <strong>78.0%</strong> respectively, proving that scalable RL training is essential for Deep Research Agents.
     </p>
   </section>
 
@@ -332,7 +338,7 @@
       <strong>(1) Co-constructed Training Data &amp; Corpus:</strong> We scale up information sources (32M+ webpages, 1M+ domains) and identify five atomic search capabilities &mdash; direct retrieval, aggregation, enumeration, cross-verification, and statistics &mdash; to generate diverse, realistic training tasks.
     </p>
     <p>
-      <strong>(2) Stable Local Tool Environment:</strong> A local search engine (BGE-M3 + Milvus, ~0.15s/query) and local browse tool (PostgreSQL, ~0.17s/page) that enable 73.2M tool calls during training at zero marginal cost.
+      <strong>(2) Stable Local Tool Environment:</strong> A local search engine (BGE-M3 + Milvus, ~0.15s/query) and local browse tool (PostgreSQL, ~0.17s/page) that enable 73.2M tool calls during training fully locally, with no external API consumption during RL and zero marginal tool cost.
     </p>
     <p>
       <strong>(3) Difficulty-Aware Curriculum RL:</strong> Multi-stage training that progressively increases task difficulty and context length, retaining only partially-solvable instances to maintain consistent training signal.
@@ -347,7 +353,7 @@
   <section>
     <h2>Main Results</h2>
     <p>
-      LiteResearcher-4B consistently outperforms open-source models up to 8&times; larger and matches or exceeds proprietary systems across eight benchmarks.
+      LiteResearcher-4B consistently outperforms open-source models up to 8&times; larger and matches or exceeds proprietary systems across eight benchmarks, while remaining a low-cost 4B agent trained with fully local RL tool calls.
     </p>
     <div style="overflow-x:auto; margin:24px 0;">
       <table class="results-table">
