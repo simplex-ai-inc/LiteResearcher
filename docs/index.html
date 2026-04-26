@@ -145,12 +145,16 @@
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       padding: 16px 20px;
+      overflow-x: auto;
+      position: relative;
+      color: #334155;
+    }
+    .bibtex-box pre {
+      margin: 0;
       font-family: 'Courier New', monospace;
       font-size: 0.82rem;
       line-height: 1.6;
-      overflow-x: auto;
       white-space: pre;
-      position: relative;
       color: #334155;
     }
     .copy-btn {
@@ -164,6 +168,7 @@
       font-size: 0.78rem;
       cursor: pointer;
       color: #475569;
+      z-index: 1;
     }
     .copy-btn:hover { background: #cbd5e1; }
 
@@ -407,12 +412,12 @@
     <h2>BibTeX</h2>
     <div class="bibtex-box" id="bibtex">
       <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('bibtex-text').textContent)">Copy</button>
-<span id="bibtex-text">@article{li2026literesearcher,
+      <pre id="bibtex-text">@article{li2026literesearcher,
   title={LiteResearcher: A Scalable Agentic RL Training Framework for Deep Research Agent},
   author={Li, Wanli and Qu, Bince and Pan, Bo and Zhang, Jianyu and Liu, Zheng and Zhang, Pan and Chen, Wei and Zhang, Bo},
   journal={arXiv preprint arXiv:2604.17931},
   year={2026}
-}</span>
+}</pre>
     </div>
   </section>
 </div>
