@@ -3,6 +3,16 @@
 # Adjust --tp, --dp, --model-path to your setup
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RELEASE_DIR="$(dirname "$SCRIPT_DIR")"
+cd "$RELEASE_DIR"
+
+# Load .env if exists
+if [ -f .env ]; then
+    set -a; source .env; set +a
+    echo "✓ Loaded .env"
+fi
+
 MODEL_PATH="${SGLANG_MODEL_PATH:-/path/to/your/model}"
 PORT="${PLANNING_PORTS:-6001}"
 TP="${SGLANG_TP:-1}"
