@@ -22,8 +22,8 @@ from transformers import AutoTokenizer
 from src.prompts import SYSTEM_PROMPT, SYSTEM_PROMPT_SIMPLE, JUDGE_PROMPT, JUDGE_PROMPT_XBENCH
 
 # FastAPI service URLs
-SEARCH_SERVER_URL = os.environ.get("SEARCH_SERVER_URL", "http://127.0.0.1:8001")
-BROWSER_SERVER_URL = os.environ.get("BROWSER_SERVER_URL", "http://127.0.0.1:8002")
+SEARCH_SERVER_URL = f"http://127.0.0.1:{os.environ.get('SEARCH_SERVER_PORT', '8001')}"
+BROWSER_SERVER_URL = f"http://127.0.0.1:{os.environ.get('BROWSER_SERVER_PORT', '8002')}"
 TOOL_SERVER_TIMEOUT = int(os.environ.get("TOOL_SERVER_TIMEOUT", 300))
 
 
