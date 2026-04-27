@@ -26,8 +26,8 @@ An open-source deep research agent for evaluating LLMs on complex question answe
 │   │  server    │        │  server   │         │
 │   └─────┬─────┘        └─────┬─────┘         │
 │         │                     │               │
-│    Serper API           ScrapeDo +            │
-│                        LLM Summary            │
+│    Serper API           Jina Reader /         │
+│                        ScrapeDo + LLM Summary │
 └───────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 
 # 2. Configure
 cp .env.example .env
-# Edit .env: set MODEL, SERPER_KEY_ID, SCRAPEDO_API_KEY
+# Edit .env: set MODEL, SERPER_KEY_ID (browser uses Jina Reader by default; set SCRAPEDO_API_KEY only if BROWSER_PROVIDER=scrapedo)
 
 # 3. Start model server
 bash scripts/start_sglang.sh
@@ -81,7 +81,9 @@ bash scripts/run_inference.sh        # Terminal 2: run evaluation
 | `MODEL` | — | Model path or name (required) |
 | `SGLANG_API_BASE` | `http://127.0.0.1:6001/v1` | LLM server endpoint |
 | `SERPER_KEY_ID` | — | [Serper](https://serper.dev) API key for search |
-| `SCRAPEDO_API_KEY` | — | [ScrapeDo](https://scrape.do) API key for browsing |
+| `BROWSER_PROVIDER` | `jina` | Page-fetch backend: `jina` or `scrapedo` |
+| `JINA_API_KEY` | — | [Jina Reader](https://jina.ai/reader) API key (optional, raises rate limits) |
+| `SCRAPEDO_API_KEY` | — | [ScrapeDo](https://scrape.do) API key (required only if `BROWSER_PROVIDER=scrapedo`) |
 | `SUMMARY_MODEL_NAME` | — | Model for webpage summarization |
 | `TEMPERATURE` | `0.6` | Sampling temperature |
 | `MAX_LLM_CALL_PER_RUN` | `100` | Max reasoning turns per question |

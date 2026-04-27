@@ -26,8 +26,8 @@ if [ -z "$SERPER_KEY_ID" ]; then
     echo "Warning: SERPER_KEY_ID not set. Search will fail."
 fi
 
-if [ -z "$SCRAPEDO_API_KEY" ]; then
-    echo "Warning: SCRAPEDO_API_KEY not set. Browse fallback will fail."
+if [ "${BROWSER_PROVIDER:-jina}" = "scrapedo" ] && [ -z "$SCRAPEDO_API_KEY" ]; then
+    echo "Warning: BROWSER_PROVIDER=scrapedo but SCRAPEDO_API_KEY not set. Browse will fail."
 fi
 
 # Start servers in background

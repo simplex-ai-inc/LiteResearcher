@@ -12,7 +12,7 @@ import tiktoken
 import asyncio
 import urllib.parse
 from datetime import datetime
-from typing import List, Union, Iterable
+from typing import List, Optional, Union, Iterable
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import AsyncOpenAI
@@ -28,7 +28,9 @@ except Exception:
 # ==============================================================================
 # Configuration via environment variables
 # ==============================================================================
-# SCRAPEDO_API_KEY        - ScrapeDo API Key (required)
+# BROWSER_PROVIDER        - Fetch provider: 'jina' (default) or 'scrapedo'
+# JINA_API_KEY            - Jina Reader API key (optional, raises rate limits)
+# SCRAPEDO_API_KEY        - ScrapeDo API key (required only if provider=scrapedo)
 # SCRAPEDO_CUSTOM_WAIT_MS - ScrapeDo render wait time in ms (default: 2000)
 # BROWSER_SERVER_PORT     - Server port (default: 8002)
 # BROWSER_MAX_WORKERS     - Concurrent threads (default: 5000)
@@ -58,9 +60,16 @@ _task_lock = threading.Lock()
 _recent_logs = deque(maxlen=1000)
 _log_lock = threading.Lock()
 
+BROWSER_PROVIDER = os.environ.get("BROWSER_PROVIDER", "jina").strip().lower()
+if BROWSER_PROVIDER not in ("jina", "scrapedo"):
+    logger.warning(f"Unknown BROWSER_PROVIDER='{BROWSER_PROVIDER}', falling back to 'jina'")
+    BROWSER_PROVIDER = "jina"
+
+JINA_API_KEY = os.environ.get("JINA_API_KEY", "")
 SCRAPEDO_API_KEY = os.environ.get("SCRAPEDO_API_KEY", "")
 SCRAPEDO_CUSTOM_WAIT_MS = int(os.environ.get("SCRAPEDO_CUSTOM_WAIT_MS", 2000))
 SCRAPEDO_MAX_RETRIES = 1
+logger.info(f"Browser provider: {BROWSER_PROVIDER} | jina_key={'set' if JINA_API_KEY else 'unset'} | scrapedo_key={'set' if SCRAPEDO_API_KEY else 'unset'}")
 
 EXTRACTOR_PROMPT = """Please process the following webpage content and user goal to extract relevant information:
 
@@ -267,8 +276,87 @@ def _has_mojibake(text: str, sample_size: int = 500) -> bool:
 # Page fetching
 # ==============================================================================
 
+def _fetch_via_jina(url: str, timeout: int = 120, proxies=None) -> "requests.Response":
+    """Fetch a URL through Jina Reader (https://r.jina.ai/<url>).
+
+    JINA_API_KEY is optional but recommended for higher rate limits.
+    """
+    jina_url = f"https://r.jina.ai/{url}"
+    headers = {}
+    if JINA_API_KEY:
+        headers["Authorization"] = f"Bearer {JINA_API_KEY}"
+    return requests.get(jina_url, headers=headers, timeout=timeout, proxies=proxies)
+
+
+def _fetch_via_scrapedo(url: str, timeout: int = 120, proxies=None, render: bool = True) -> "requests.Response":
+    """Fetch a URL through ScrapeDo. Requires SCRAPEDO_API_KEY."""
+    if not SCRAPEDO_API_KEY:
+        raise ValueError("SCRAPEDO_API_KEY not configured")
+    api_url = (
+        f"https://api.scrape.do/?token={SCRAPEDO_API_KEY}"
+        f"&url={urllib.parse.quote(url)}"
+    )
+    if render:
+        api_url += f"&customWait={SCRAPEDO_CUSTOM_WAIT_MS}&render=true"
+    return requests.get(api_url, timeout=timeout, proxies=proxies)
+
+
+def _normalize_response_encoding(resp) -> None:
+    if resp.encoding and resp.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
+        resp.encoding = resp.apparent_encoding or 'utf-8'
+
+
+def _try_jina(url: str, prefix: str, start_time: float, proxies, min_chars: int = 300) -> Optional[str]:
+    """Attempt a Jina Reader fetch. Returns the markdown body on success, None on failure."""
+    try:
+        elapsed = time.time() - start_time
+        logger.info(f"{prefix} 🔗 Jina   | {elapsed:.1f}s | {url[:60]}")
+        resp = _fetch_via_jina(url, timeout=120, proxies=proxies if proxies else None)
+        _normalize_response_encoding(resp)
+        if resp.status_code == 200 and len(resp.text) > min_chars:
+            body = html_to_markdown(resp.text) if resp.text.strip().startswith('<') else resp.text
+            if not _has_mojibake(body):
+                elapsed = time.time() - start_time
+                logger.info(f"{prefix} ✅ Jina   | {elapsed:.1f}s | {len(body):,} chars")
+                return body
+    except Exception as e:
+        elapsed = time.time() - start_time
+        logger.warning(f"{prefix} ⚠️ Jina   | {elapsed:.1f}s | {str(e)[:80]}")
+    return None
+
+
+def _try_scrapedo(url: str, prefix: str, start_time: float, proxies) -> Optional[str]:
+    """Attempt a ScrapeDo fetch with render. Returns the markdown body on success, None on failure."""
+    if not SCRAPEDO_API_KEY:
+        return None
+    for attempt in range(SCRAPEDO_MAX_RETRIES):
+        elapsed = time.time() - start_time
+        logger.info(f"{prefix} 🌐 Scrape | {elapsed:.1f}s | attempt {attempt+1}/{SCRAPEDO_MAX_RETRIES}")
+        try:
+            resp = _fetch_via_scrapedo(url, timeout=120, proxies=proxies if proxies else None, render=True)
+            _normalize_response_encoding(resp)
+            if resp.status_code == 200 and len(resp.text) > 300:
+                body = html_to_markdown(resp.text)
+                if not _has_mojibake(body):
+                    elapsed = time.time() - start_time
+                    logger.info(f"{prefix} ✅ Scrape | {elapsed:.1f}s | {len(body):,} chars")
+                    return body
+                raise ValueError("Content has mojibake encoding")
+            raise ValueError(f"HTTP {resp.status_code}")
+        except Exception as e:
+            if attempt == SCRAPEDO_MAX_RETRIES - 1:
+                elapsed = time.time() - start_time
+                logger.warning(f"{prefix} ⚠️ Scrape | {elapsed:.1f}s | {str(e)[:80]}")
+            else:
+                time.sleep(1)
+    return None
+
+
 def fetch_page_sync(url: str, req_id: str = "", start_time: float = None) -> str:
-    """Fetch webpage via direct request first, fallback to Scrapedo API"""
+    """Fetch a webpage. Order: direct request -> primary provider -> secondary provider.
+
+    Primary provider is selected via BROWSER_PROVIDER (default: 'jina').
+    """
     prefix = f"[{req_id}]" if req_id else ""
     if start_time is None:
         start_time = time.time()
@@ -277,39 +365,20 @@ def fetch_page_sync(url: str, req_id: str = "", start_time: float = None) -> str
         "http": os.environ.get("http_proxy", ""),
         "https": os.environ.get("https_proxy", ""),
     }
-    # Remove empty proxies
     proxies = {k: v for k, v in proxies.items() if v}
 
-    # Chinese URLs: try Jina Reader first
+    # Chinese URLs benefit from Jina Reader first (handles encoding + GFW issues better)
     if _is_chinese_url(url) and 'r.jina.ai' not in url:
-        try:
-            jina_url = f"https://r.jina.ai/{url}"
-            elapsed = time.time() - start_time
-            logger.info(f"{prefix} 🔗 Jina-CN | {elapsed:.1f}s | {url[:60]}")
-            jina_api_url = (
-                f"https://api.scrape.do/?token={SCRAPEDO_API_KEY}"
-                f"&url={urllib.parse.quote(jina_url)}"
-            )
-            jina_resp = requests.get(jina_api_url, timeout=120, proxies=proxies if proxies else None)
-            if jina_resp.encoding and jina_resp.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
-                jina_resp.encoding = jina_resp.apparent_encoding or 'utf-8'
-            if jina_resp.status_code == 200 and len(jina_resp.text) > 300:
-                jina_body = html_to_markdown(jina_resp.text) if jina_resp.text.strip().startswith('<') else jina_resp.text
-                if not _has_mojibake(jina_body):
-                    elapsed = time.time() - start_time
-                    logger.info(f"{prefix} ✅ Jina-CN | {elapsed:.1f}s | {len(jina_body):,} chars")
-                    return jina_body
-        except Exception as e:
-            elapsed = time.time() - start_time
-            logger.warning(f"{prefix} ⚠️  Jina-CN | {elapsed:.1f}s | {str(e)[:80]}")
+        body = _try_jina(url, prefix, start_time, proxies)
+        if body:
+            return body
 
     # Direct request
     try:
         elapsed = time.time() - start_time
         logger.info(f"{prefix} 🌐 Direct | {elapsed:.1f}s")
         direct_resp = requests.get(url, timeout=60, proxies=proxies if proxies else None)
-        if direct_resp.encoding and direct_resp.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
-            direct_resp.encoding = direct_resp.apparent_encoding or 'utf-8'
+        _normalize_response_encoding(direct_resp)
         if direct_resp.status_code == 200 and len(direct_resp.text) > 300:
             body = html_to_markdown(direct_resp.text)
             if not _has_mojibake(body):
@@ -320,59 +389,26 @@ def fetch_page_sync(url: str, req_id: str = "", start_time: float = None) -> str
         elapsed = time.time() - start_time
         logger.warning(f"{prefix} ⚠️ Direct | {elapsed:.1f}s | {str(e)}")
 
-    # Scrapedo fallback
-    for attempt in range(SCRAPEDO_MAX_RETRIES):
-        elapsed = time.time() - start_time
-        logger.info(f"{prefix} 🌐 Fetch  | {elapsed:.1f}s | attempt {attempt+1}/{SCRAPEDO_MAX_RETRIES}")
-        try:
-            api_url = (
-                f"https://api.scrape.do/?token={SCRAPEDO_API_KEY}"
-                f"&url={urllib.parse.quote(url)}"
-                f"&customWait={SCRAPEDO_CUSTOM_WAIT_MS}&render=true"
-            )
-            resp = requests.get(api_url, timeout=120, proxies=proxies if proxies else None)
-            if resp.encoding and resp.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
-                resp.encoding = resp.apparent_encoding or 'utf-8'
-            if resp.status_code == 200 and len(resp.text) > 300:
-                body = html_to_markdown(resp.text)
-                if not _has_mojibake(body):
-                    elapsed = time.time() - start_time
-                    logger.info(f"{prefix} ✅ Fetch  | {elapsed:.1f}s | {len(body):,} chars")
-                    return body
-                raise ValueError("Content has mojibake encoding")
-            raise ValueError(f"HTTP {resp.status_code}")
-        except Exception as e:
-            if attempt == SCRAPEDO_MAX_RETRIES - 1:
-                elapsed = time.time() - start_time
-                logger.warning(f"{prefix} ⚠️ Fetch | {elapsed:.1f}s | {str(e)[:80]}")
-            else:
-                time.sleep(1)
+    # Provider chain: primary then secondary
+    if BROWSER_PROVIDER == "scrapedo":
+        primary = lambda: _try_scrapedo(url, prefix, start_time, proxies)
+        secondary = lambda: (_try_jina(url, prefix, start_time, proxies, min_chars=200)
+                             if 'r.jina.ai' not in url else None)
+    else:  # jina (default)
+        primary = lambda: (_try_jina(url, prefix, start_time, proxies)
+                           if 'r.jina.ai' not in url else None)
+        secondary = lambda: _try_scrapedo(url, prefix, start_time, proxies)
 
-    # Jina fallback
-    if 'r.jina.ai' not in url:
-        try:
-            jina_url = f"https://r.jina.ai/{url}"
-            elapsed = time.time() - start_time
-            logger.info(f"{prefix} 🔗 Jina  | fallback | {elapsed:.1f}s")
-            jina_api_url = (
-                f"https://api.scrape.do/?token={SCRAPEDO_API_KEY}"
-                f"&url={urllib.parse.quote(jina_url)}"
-            )
-            jina_resp = requests.get(jina_api_url, timeout=120, proxies=proxies if proxies else None)
-            if jina_resp.encoding and jina_resp.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
-                jina_resp.encoding = jina_resp.apparent_encoding or 'utf-8'
-            if jina_resp.status_code == 200 and len(jina_resp.text) > 200:
-                jina_body = html_to_markdown(jina_resp.text) if jina_resp.text.strip().startswith('<') else jina_resp.text
-                elapsed = time.time() - start_time
-                logger.info(f"{prefix} ✅ Jina  | fallback | {elapsed:.1f}s | {len(jina_body):,} chars")
-                return jina_body
-        except Exception as e:
-            elapsed = time.time() - start_time
-            logger.warning(f"{prefix} ⚠️ Jina  | fallback | {elapsed:.1f}s | {str(e)[:80]}")
+    body = primary()
+    if body:
+        return body
+    body = secondary()
+    if body:
+        return body
 
     elapsed = time.time() - start_time
     logger.error(f"{prefix} ❌ Fetch  | all failed | {elapsed:.1f}s")
-    return f"[fetch_error] All methods failed (direct/scrapedo/jina)"
+    return "[fetch_error] All methods failed (direct/jina/scrapedo)"
 
 
 async def fetch_page(url: str, req_id: str = "", start_time: float = None) -> str:
@@ -517,8 +553,8 @@ async def browse(req: BrowseRequest):
     start = time.time()
 
     try:
-        if not SCRAPEDO_API_KEY:
-            raise ValueError("SCRAPEDO_API_KEY not configured")
+        if BROWSER_PROVIDER == "scrapedo" and not SCRAPEDO_API_KEY:
+            raise ValueError("SCRAPEDO_API_KEY not configured (BROWSER_PROVIDER=scrapedo)")
 
         urls = [req.url] if isinstance(req.url, str) else req.url
         logger.info(f"[{req_id}] 📨 API | urls: {len(urls)}")

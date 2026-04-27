@@ -57,7 +57,7 @@ Three pillars enable low-cost, scalable Agentic RL:
 cd Inference
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env: set MODEL, SERPER_KEY_ID, SCRAPEDO_API_KEY
+# Edit .env: set MODEL, SERPER_KEY_ID (browser uses Jina Reader by default; set SCRAPEDO_API_KEY only if using BROWSER_PROVIDER=scrapedo)
 
 # Start model server (SGLang/vLLM)
 bash scripts/start_sglang.sh
