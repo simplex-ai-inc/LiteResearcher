@@ -33,7 +33,7 @@ except Exception:
 # SCRAPEDO_API_KEY        - ScrapeDo API key (required only if provider=scrapedo)
 # SCRAPEDO_CUSTOM_WAIT_MS - ScrapeDo render wait time in ms (default: 2000)
 # BROWSER_SERVER_PORT     - Server port (default: 8002)
-# BROWSER_MAX_WORKERS     - Concurrent threads (default: 5000)
+# BROWSER_MAX_WORKERS     - Concurrent threads (default: 200)
 # SUMMARY_PORTS           - Summary service ports, comma separated (default: 7001)
 # SUMMARY_MODEL_NAME      - Summary model name
 # ==============================================================================
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Browser Service")
 
-MAX_WORKERS = int(os.environ.get("BROWSER_MAX_WORKERS", 5000))
+MAX_WORKERS = int(os.environ.get("BROWSER_MAX_WORKERS", 200))
 executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 logger.info(f"Browser service configured with max_workers={MAX_WORKERS}")
 
