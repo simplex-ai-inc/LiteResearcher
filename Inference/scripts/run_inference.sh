@@ -38,7 +38,7 @@ echo "  Workers:     $MAX_WORKERS"
 echo "  Rollouts:    $ROLL_OUT_COUNT"
 echo "=========================================="
 
-python src/run_inference.py \
+python -m src.run_inference \
     --model "$MODEL" \
     --dataset "$DATASET" \
     --output "$OUTPUT" \
