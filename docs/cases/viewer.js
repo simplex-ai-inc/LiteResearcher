@@ -101,6 +101,10 @@ async function selectCase(bench, idRaw) {
     return;
   }
   STATE.current = { benchmark: bench, caseId: caseObj.id };
+  const newHash = `#bench=${encodeURIComponent(bench)}&id=${encodeURIComponent(caseObj.id)}`;
+  if (location.hash !== newHash) {
+    history.replaceState(null, "", newHash);
+  }
   renderSidebar();
   renderCase(caseObj);
 }
@@ -214,6 +218,18 @@ function attachToggles() {
 }
 
 
+function parseHash() {
+  const h = (location.hash || "").replace(/^#/, "");
+  if (!h) return null;
+  const params = {};
+  for (const part of h.split("&")) {
+    const [k, v] = part.split("=");
+    if (k) params[decodeURIComponent(k)] = decodeURIComponent(v || "");
+  }
+  if (params.bench && params.id) return { bench: params.bench, id: params.id };
+  return null;
+}
+
 async function boot() {
   try {
     STATE.index = await loadJSON("cases/index.json");
@@ -221,7 +237,10 @@ async function boot() {
     BENCH_LIST_EL.textContent = "无法加载 cases/index.json,请用 HTTP 服务器打开 (例如 python -m http.server)。";
     return;
   }
-  if (STATE.index.benchmarks.length) {
+  const hash = parseHash();
+  if (hash) {
+    STATE.current = { benchmark: hash.bench, caseId: hash.id };
+  } else if (STATE.index.benchmarks.length) {
     const first = STATE.index.benchmarks[0];
     STATE.current = { benchmark: first.benchmark, caseId: first.cases[0].id };
   }
@@ -229,6 +248,10 @@ async function boot() {
   if (STATE.current) {
     selectCase(STATE.current.benchmark, STATE.current.caseId);
   }
+  window.addEventListener("hashchange", () => {
+    const h = parseHash();
+    if (h) selectCase(h.bench, h.id);
+  });
 }
 
 boot();

@@ -172,6 +172,121 @@
     }
     .copy-btn:hover { background: #cbd5e1; }
 
+    /* Trajectory cards */
+    .traj-intro { color:#555; font-size:0.95rem; margin-bottom:18px; }
+    .traj-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .traj-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px 12px;
+      cursor: pointer;
+      transition: all .15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      min-height: 150px;
+    }
+    .traj-card:hover {
+      border-color: #2563eb;
+      box-shadow: 0 4px 14px rgba(37,99,235,.10);
+      transform: translateY(-1px);
+    }
+    .traj-card .tc-top {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .traj-card .tc-bench {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px;
+      background: #eef2ff; color: #4338ca;
+    }
+    .traj-card .tc-id { font-size: 0.72rem; color: #94a3b8; }
+    .traj-card .tc-q {
+      font-size: 0.9rem; color: #1f2937; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .traj-card .tc-stats {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      font-size: 0.72rem; color: #64748b; margin-top: auto;
+    }
+    .traj-card .tc-stats .s {
+      background: #f1f5f9; padding: 2px 8px; border-radius: 6px;
+    }
+
+    /* Modal */
+    .traj-backdrop {
+      position: fixed; inset: 0; background: rgba(15,23,42,.55);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+    }
+    .traj-backdrop.open { display: flex; }
+    .traj-modal {
+      background: #fff; border-radius: 14px; max-width: 760px; width: 100%;
+      max-height: 86vh; overflow: hidden;
+      display: flex; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .traj-modal-head {
+      padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .traj-modal-head .tm-title {
+      font-family: 'Noto Serif', serif; font-size: 1.05rem; font-weight: 700; color: #1a1a1a;
+    }
+    .traj-modal-close {
+      background: transparent; border: none; color: #64748b; font-size: 1.4rem;
+      cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 6px;
+    }
+    .traj-modal-close:hover { background: #f1f5f9; color: #1a1a1a; }
+    .traj-modal-body { padding: 18px 20px; overflow-y: auto; }
+    .traj-modal-body h4 {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em;
+      color: #64748b; margin: 14px 0 6px;
+    }
+    .traj-modal-body h4:first-child { margin-top: 0; }
+    .traj-modal-body .q-text {
+      font-size: 0.98rem; color: #1f2937; line-height: 1.6;
+    }
+    .traj-modal-body .ans-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 600px) { .traj-modal-body .ans-grid { grid-template-columns: 1fr; } }
+    .traj-modal-body .ans-cell {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 10px 12px; font-size: 0.9rem; line-height: 1.55; color: #334155;
+    }
+    .traj-modal-body .ans-cell.final { background: #f5f3ff; border-color: #ddd6fe; color: #4c1d95; }
+    .traj-modal-body .verdict {
+      font-size: 0.82rem; color: #475569; background: #f1f5f9;
+      border-left: 3px solid #2bbf7c; padding: 8px 12px; border-radius: 6px;
+      white-space: pre-wrap;
+    }
+    .traj-stat-row {
+      display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0;
+    }
+    .traj-stat-row .s {
+      background: #f1f5f9; padding: 3px 9px; border-radius: 6px;
+      font-size: 0.78rem; color: #475569;
+    }
+    .traj-modal-foot {
+      padding: 12px 20px; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .traj-open-btn {
+      background: #2563eb; color: #fff; text-decoration: none;
+      padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600;
+    }
+    .traj-open-btn:hover { background: #1d4ed8; }
+    .traj-loading { color: #94a3b8; font-size: 0.9rem; }
+
     /* Footer */
     footer {
       text-align: center;
@@ -411,6 +526,20 @@
     </figure>
   </section>
 
+  <!-- Trajectory Cases -->
+  <section id="trajectories">
+    <h2>Trajectory Cases</h2>
+    <p class="traj-intro">
+      15 hand-audited rollout trajectories from <strong>LiteResearcher-4B</strong> across 8 deep-research benchmarks. Every case is judged correct, leak-free, and verified by 4 independent Opus-4.7 (1M-context) subagents to confirm the answer is derived from cited evidence. Click any card for a quick look, or open the full step-by-step viewer.
+    </p>
+    <div id="traj-grid" class="traj-grid">
+      <div class="traj-loading">Loading cases…</div>
+    </div>
+    <p style="text-align:center; margin-top:18px;">
+      <a class="btn btn-outline" href="./cases/" target="_blank" style="font-size:0.9rem;">Open full trajectory viewer →</a>
+    </p>
+  </section>
+
   <!-- BibTeX -->
   <section>
     <h2>BibTeX</h2>
@@ -431,6 +560,159 @@
     This page template is inspired by <a href="https://nerfies.github.io" target="_blank">Nerfies</a>.
   </div>
 </footer>
+
+<!-- Trajectory modal -->
+<div class="traj-backdrop" id="traj-backdrop" role="dialog" aria-modal="true">
+  <div class="traj-modal">
+    <div class="traj-modal-head">
+      <div class="tm-title" id="tm-title">Case</div>
+      <button class="traj-modal-close" id="tm-close" aria-label="Close">×</button>
+    </div>
+    <div class="traj-modal-body" id="tm-body"></div>
+    <div class="traj-modal-foot">
+      <a id="tm-open" class="traj-open-btn" href="./cases/" target="_blank">View full trajectory →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const GRID = document.getElementById("traj-grid");
+  const BACKDROP = document.getElementById("traj-backdrop");
+  const TM_TITLE = document.getElementById("tm-title");
+  const TM_BODY = document.getElementById("tm-body");
+  const TM_OPEN = document.getElementById("tm-open");
+  const TM_CLOSE = document.getElementById("tm-close");
+
+  const BENCH_COLORS = {
+    Frame:           { bg: "#eef2ff", fg: "#4338ca" },
+    GAIA:            { bg: "#ecfeff", fg: "#0e7490" },
+    HLE:             { bg: "#fef3c7", fg: "#92400e" },
+    Seal0:           { bg: "#fee2e2", fg: "#b91c1c" },
+    WebwalkerQA:     { bg: "#dcfce7", fg: "#166534" },
+    Xbench:          { bg: "#ffe4e6", fg: "#9f1239" },
+    "browsecomp-zh": { bg: "#f3e8ff", fg: "#6b21a8" },
+    browsecomp:     { bg: "#e0e7ff", fg: "#3730a3" },
+  };
+
+  const BENCH_LABEL = {
+    Frame: "Frame",
+    GAIA: "GAIA",
+    HLE: "HLE",
+    Seal0: "Seal-0",
+    WebwalkerQA: "WebWalkerQA",
+    Xbench: "Xbench-DS",
+    "browsecomp-zh": "BrowseComp-zh",
+    browsecomp: "BrowseComp",
+  };
+
+  const cache = {};   // bench -> full json
+
+  function escapeHTML(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  }
+
+  async function loadBench(bench) {
+    if (cache[bench]) return cache[bench];
+    const resp = await fetch(`./cases/cases/${bench}.json`);
+    if (!resp.ok) throw new Error(`Failed to load ${bench}: ${resp.status}`);
+    cache[bench] = await resp.json();
+    return cache[bench];
+  }
+
+  function renderCards(index) {
+    const flat = [];
+    for (const b of index.benchmarks) {
+      for (const c of b.cases) flat.push({ ...c, benchmark: b.benchmark });
+    }
+    GRID.innerHTML = flat.map(c => {
+      const col = BENCH_COLORS[c.benchmark] || { bg: "#f1f5f9", fg: "#334155" };
+      const label = BENCH_LABEL[c.benchmark] || c.benchmark;
+      return `
+        <div class="traj-card" data-bench="${escapeHTML(c.benchmark)}" data-id="${escapeHTML(String(c.id))}">
+          <div class="tc-top">
+            <span class="tc-bench" style="background:${col.bg};color:${col.fg};">${escapeHTML(label)}</span>
+            <span class="tc-id">id ${escapeHTML(String(c.id))}</span>
+          </div>
+          <div class="tc-q">${escapeHTML(c.question)}</div>
+          <div class="tc-stats">
+            <span class="s">🔍 ${c.n_search}</span>
+            <span class="s">🌐 ${c.n_visit}</span>
+            <span class="s">★ ${Number(c.score).toFixed(1)}</span>
+          </div>
+        </div>`;
+    }).join("");
+
+    GRID.querySelectorAll(".traj-card").forEach(el => {
+      el.addEventListener("click", () => openModal(el.dataset.bench, el.dataset.id));
+    });
+  }
+
+  async function openModal(bench, idRaw) {
+    const label = BENCH_LABEL[bench] || bench;
+    TM_TITLE.textContent = `${label} · id ${idRaw}`;
+    TM_BODY.innerHTML = `<div class="traj-loading">Loading trajectory…</div>`;
+    TM_OPEN.href = `./cases/#bench=${encodeURIComponent(bench)}&id=${encodeURIComponent(idRaw)}`;
+    BACKDROP.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    let data;
+    try { data = await loadBench(bench); }
+    catch (e) {
+      TM_BODY.innerHTML = `<div class="traj-loading">Failed to load: ${escapeHTML(e.message)}</div>`;
+      return;
+    }
+    const c = (data.cases || []).find(x => String(x.id) === String(idRaw));
+    if (!c) {
+      TM_BODY.innerHTML = `<div class="traj-loading">Case not found.</div>`;
+      return;
+    }
+    const stats = c.stats || {};
+    const verdict = c.judge_verdict ? `<h4>Judge verdict</h4><div class="verdict">${escapeHTML(c.judge_verdict)}</div>` : "";
+    TM_BODY.innerHTML = `
+      <h4>Question</h4>
+      <div class="q-text">${escapeHTML(c.question)}</div>
+
+      <h4>Answer comparison</h4>
+      <div class="ans-grid">
+        <div class="ans-cell"><strong>Reference</strong><br/>${escapeHTML(c.reference_answer || "—")}</div>
+        <div class="ans-cell final"><strong>Model answer ${c.judge_correct ? "✓" : "✗"}</strong><br/>${escapeHTML(c.final_answer || "—")}</div>
+      </div>
+
+      <h4>Trajectory stats</h4>
+      <div class="traj-stat-row">
+        <span class="s">🔍 ${stats.n_search ?? c.n_search} searches</span>
+        <span class="s">🌐 ${stats.n_visit ?? c.n_visit} visits</span>
+        <span class="s">🪐 ${stats.n_domains ?? "—"} domains</span>
+        <span class="s">🧠 ${stats.n_think_turns ?? "—"} think turns · ${stats.total_think_chars ?? "—"} chars</span>
+        <span class="s">★ score ${Number(c.score).toFixed(2)}</span>
+      </div>
+
+      ${verdict}
+    `;
+  }
+
+  function closeModal() {
+    BACKDROP.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  TM_CLOSE.addEventListener("click", closeModal);
+  BACKDROP.addEventListener("click", (e) => { if (e.target === BACKDROP) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+  (async () => {
+    try {
+      const index = await fetch("./cases/cases/index.json").then(r => r.json());
+      renderCards(index);
+    } catch (e) {
+      GRID.innerHTML = `<div class="traj-loading">Failed to load cases index: ${escapeHTML(e.message)}</div>`;
+    }
+  })();
+})();
+</script>
 
 </body>
 </html>
