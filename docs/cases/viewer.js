@@ -48,14 +48,10 @@ function renderSidebar() {
   if (!STATE.index) return;
   const html = STATE.index.benchmarks.map(b => {
     const items = b.cases.map(c => {
-      const id = `${b.benchmark}::${c.id}`;
       const isActive = STATE.current && STATE.current.benchmark === b.benchmark && STATE.current.caseId === c.id;
-      const tag = tagFor(c);
       return `
         <div class="case-item ${isActive ? "active" : ""}" data-bench="${escapeHTML(b.benchmark)}" data-id="${escapeHTML(String(c.id))}">
-          <div>id ${escapeHTML(String(c.id))} · score ${c.score.toFixed(2)} ${tag}</div>
-          <div class="case-meta">s=${c.n_search} v=${c.n_visit}</div>
-          <div style="margin-top:4px;color:var(--muted);font-size:11.5px;line-height:1.35">${escapeHTML(c.question.slice(0, 80))}${c.question.length > 80 ? "…" : ""}</div>
+          <div style="color:var(--text);font-size:12.5px;line-height:1.4">${escapeHTML(c.question.slice(0, 90))}${c.question.length > 90 ? "…" : ""}</div>
         </div>`;
     }).join("");
     const open = STATE.current && STATE.current.benchmark === b.benchmark ? "open" : "";
@@ -63,7 +59,6 @@ function renderSidebar() {
       <div class="bench ${open}" data-bench="${escapeHTML(b.benchmark)}">
         <div class="bench-head">
           <span><strong>${escapeHTML(b.benchmark)}</strong></span>
-          <span class="count">${b.selected} / ${b.n_total_correct}</span>
         </div>
         <div class="cases">${items}</div>
       </div>`;
@@ -111,16 +106,12 @@ async function selectCase(bench, idRaw) {
 
 function renderCase(c) {
   const stats = c.stats || {};
-  const tag = tagFor(c);
   const statTags = [
-    `<span class="tag muted">score ${c.score.toFixed(2)}</span>`,
     `<span class="tag muted">🔍 ${stats.n_search} 次搜索</span>`,
     `<span class="tag muted">🌐 ${stats.n_visit} 次访问</span>`,
     `<span class="tag muted">🪐 ${stats.n_domains} 个域名</span>`,
-    `<span class="tag muted">🧠 ${stats.n_think_turns} 轮思考 · ${stats.total_think_chars}c</span>`,
-    stats.hack_penalty > 0 ? `<span class="tag warn">hack -${stats.hack_penalty}</span>` : "",
-    c.judge_correct ? `<span class="tag ok">✓ correct</span>` : `<span class="tag bad">✗ ${escapeHTML(c.judge_verdict || "wrong")}</span>`,
-    tag,
+    `<span class="tag muted">🧠 ${stats.n_think_turns} 轮思考</span>`,
+    c.judge_correct ? `<span class="tag ok">✓ correct</span>` : `<span class="tag bad">✗ wrong</span>`,
   ].filter(Boolean).join(" ");
 
   const stepsHTML = c.steps.map((s, idx) => renderStep(s, idx)).join("");
@@ -131,7 +122,7 @@ function renderCase(c) {
 
   MAIN_EL.innerHTML = `
     <div class="case-header">
-      <div class="breadcrumb">${escapeHTML(c.benchmark)} · id ${escapeHTML(String(c.id))}</div>
+      <div class="breadcrumb">${escapeHTML(c.benchmark)}</div>
       <h2>${escapeHTML(c.question)}</h2>
       <div class="stats">${statTags}</div>
       <div class="ans-row">

@@ -635,13 +635,11 @@
         <div class="traj-card" data-bench="${escapeHTML(c.benchmark)}" data-id="${escapeHTML(String(c.id))}">
           <div class="tc-top">
             <span class="tc-bench" style="background:${col.bg};color:${col.fg};">${escapeHTML(label)}</span>
-            <span class="tc-id">id ${escapeHTML(String(c.id))}</span>
           </div>
           <div class="tc-q">${escapeHTML(c.question)}</div>
           <div class="tc-stats">
             <span class="s">🔍 ${c.n_search}</span>
             <span class="s">🌐 ${c.n_visit}</span>
-            <span class="s">★ ${Number(c.score).toFixed(1)}</span>
           </div>
         </div>`;
     }).join("");
@@ -653,7 +651,7 @@
 
   async function openModal(bench, idRaw) {
     const label = BENCH_LABEL[bench] || bench;
-    TM_TITLE.textContent = `${label} · id ${idRaw}`;
+    TM_TITLE.textContent = label;
     TM_BODY.innerHTML = `<div class="traj-loading">Loading trajectory…</div>`;
     TM_OPEN.href = `./cases/#bench=${encodeURIComponent(bench)}&id=${encodeURIComponent(idRaw)}`;
     BACKDROP.classList.add("open");
@@ -687,8 +685,7 @@
         <span class="s">🔍 ${stats.n_search ?? c.n_search} searches</span>
         <span class="s">🌐 ${stats.n_visit ?? c.n_visit} visits</span>
         <span class="s">🪐 ${stats.n_domains ?? "—"} domains</span>
-        <span class="s">🧠 ${stats.n_think_turns ?? "—"} think turns · ${stats.total_think_chars ?? "—"} chars</span>
-        <span class="s">★ score ${Number(c.score).toFixed(2)}</span>
+        <span class="s">🧠 ${stats.n_think_turns ?? "—"} think turns</span>
       </div>
 
       ${verdict}
