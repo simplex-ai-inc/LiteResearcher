@@ -55,7 +55,7 @@
     .brand-logos {
       display: inline-flex; align-items: center; gap: 14px;
     }
-    .brand-logo-zju { height: 26px; width: auto; display: block; }
+    .brand-logo-zju { height: 38px; width: auto; display: block; }
     .brand-divider {
       width: 1px; height: 18px; background: #d4d4d4; display: inline-block;
     }
@@ -77,7 +77,7 @@
     }
     .topnav-links a:hover { color: var(--ink); background: #f5f5f4; }
     @media (max-width: 720px) {
-      .brand-logo-zju { height: 24px; }
+      .brand-logo-zju { height: 32px; }
       .brand-logo-simplex { height: 20px; }
       .topnav-links a { padding: 6px 10px; font-size: 0.8rem; }
     }
@@ -783,7 +783,7 @@
       LiteResearcher: A Scalable Agentic RL Training Framework for Deep Research Agent<span class="punct">.</span>
     </h1>
     <p class="lede">
-      A <span class="num">4B</span> deep research agent that beats 30B open-source baselines and matches Claude-4.5-Sonnet / GPT-5-high — trained with <span class="pill">zero marginal RL API cost</span>.
+      A <span class="num">4B</span> deep research agent that beats 30B open-source baselines and matches Claude-4.5-Sonnet / GPT-5-high — trained with <strong style="color:var(--ink);font-weight:600">zero marginal RL API cost</strong>.
     </p>
     <div class="authors">
       <span>Wanli Li<span class="equal">1,2,*</span></span>,
@@ -972,27 +972,28 @@
       A few of our trajectories — pick one and watch <strong>LiteResearcher-4B</strong> think, search, and answer.
     </p>
 
-    <!-- Trajectory video player (3 picks, 15s each) -->
+    <!-- Trajectory video player -->
     <div class="traj-video-wrap" id="traj-video">
       <div class="traj-video-tabs" role="tablist">
         <button class="traj-tab active" data-video="videos/gaia-56.mp4" data-poster="videos/gaia-56.jpg"
           data-caption="Washington county-seat population diff (2020 census)">
-          <span class="dot"></span> GAIA
+          <span class="dot"></span> Case 1
         </button>
         <button class="traj-tab" data-video="videos/xbench-92.mp4" data-poster="videos/xbench-92.jpg"
           data-caption="Campbell sisters age difference in weeks">
-          <span class="dot"></span> Xbench-DS
+          <span class="dot"></span> Case 2
         </button>
         <button class="traj-tab" data-video="videos/webwalker-158.mp4" data-poster="videos/webwalker-158.jpg"
           data-caption="SDUFE professor with earliest national honor">
-          <span class="dot"></span> WebWalkerQA
+          <span class="dot"></span> Case 3
         </button>
       </div>
       <div class="traj-video-stage">
         <video id="traj-video-el"
           src="videos/gaia-56.mp4"
           poster="videos/gaia-56.jpg"
-          autoplay muted loop playsinline preload="metadata"></video>
+          controls autoplay muted loop playsinline preload="metadata"
+          controlslist="nodownload"></video>
       </div>
       <div class="traj-video-caption" id="traj-video-caption">
         Washington county-seat population diff (2020 census)
