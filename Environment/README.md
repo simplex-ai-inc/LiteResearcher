@@ -47,18 +47,18 @@ can scale the GPU embedding workers independently of the search service.
 
 ```
 LiteResearcher/
-├── config.py            # 数据导入端配置（数据路径、模型、集合名、DISKANN/SQL 开关）
-├── data.py              # 数据导入入口：python data.py
-├── rag_core/            # 索引构建库（向量化 / 建集合 / 数据加载 / 可选 PostgreSQL）
+├── config.py            # Index-build config (data paths, model, collection, DISKANN/SQL toggles)
+├── data.py              # Index-build entrypoint: python data.py
+├── rag_core/            # Index-build library (embedding / collection / data loading / optional PostgreSQL)
 ├── tools/
-│   └── convert_serper.py    # serper/Google 结果 → 导入格式
-├── server/              # 检索后端
-│   ├── local_rag_server.py  # 检索服务 (:8018)，混合搜索
-│   ├── embedding_worker.py  # BGE-M3 向量化 worker（Redis 队列消费者）
-│   ├── sql_fulltext.py      # 可选：从 PostgreSQL 按 URL 取整篇全文
-│   ├── diskann_config.py    # 后端配置（Milvus 地址、集合、模型、GPU、SQL）
+│   └── convert_serper.py    # serper/Google results → import format
+├── server/              # Retrieval backend
+│   ├── local_rag_server.py  # Search service (:8018), hybrid search
+│   ├── embedding_worker.py  # BGE-M3 embedding worker (Redis queue consumer)
+│   ├── sql_fulltext.py      # Optional: fetch full document by URL from PostgreSQL
+│   ├── diskann_config.py    # Backend config (Milvus URI, collection, model, GPU, SQL)
 │   ├── start.sh / stop.sh
-├── milvus_config/       # Milvus 单机 docker 部署（含 DISKANN 配置）
+├── milvus_config/       # Milvus single-node docker deployment (incl. DISKANN config)
 └── requirements.txt
 ```
 
@@ -70,74 +70,75 @@ LiteResearcher/
 
 ```bash
 pip install -r requirements.txt
-# 另需本地的 BGE-M3 模型权重，以及一个可达的 Redis 实例
+# You also need local BGE-M3 model weights and a reachable Redis instance.
 ```
 
 ### 1. Start Milvus
 
 ```bash
 cd milvus_config
-# 编辑 .env，把 DOCKER_VOLUME_DIRECTORY 改为真实数据目录
+# Edit .env and set DOCKER_VOLUME_DIRECTORY to your real data directory.
 docker-compose up -d
-# Milvus 监听 localhost:19530
+# Milvus listens on localhost:19530
 ```
 
-> DISKANN 参数（MaxDegree / SearchListSize 等）在 `milvus_config/milvus.yaml`
-> 的 `common.DiskIndex` 下设置，不在 Python 代码里。
+> DISKANN parameters (MaxDegree / SearchListSize, etc.) live under `common.DiskIndex`
+> in `milvus_config/milvus.yaml`, not in the Python code.
 
 ### 2. Build the index
 
-#### 2a.（可选）下载发布的语料
+#### 2a. (Optional) Download the released corpus
 
-我们发布的 ~32M 检索语料在 HuggingFace，每条含 `url` / `title` / `doc`：
+Our released ~32M retrieval corpus is on HuggingFace; each record has `url` / `title` / `doc`:
 
 ```bash
 huggingface-cli download simplex-ai-inc/LiteResearcher-Corpus \
   serper_test_text.jsonl.zst --repo-type dataset --local-dir ./corpus
-zstd -d ./corpus/serper_test_text.jsonl.zst    # 解压成 jsonl
+zstd -d ./corpus/serper_test_text.jsonl.zst    # decompress to jsonl
 ```
 
-> 该文件每行已是 `{"url": ..., "title": ..., "doc": ...}`。若直接用于导入，可用
-> `tools/convert_serper.py` 对齐成下方的嵌套格式（`--text-field doc`）。
+> Each line is already `{"url": ..., "title": ..., "doc": ...}`. To import it directly,
+> use `tools/convert_serper.py` to align it into the nested format below (`--text-field doc`).
 
-导入端期望每行一个 JSON 对象（`.jsonl` 或 `.json.gz`），字段为 **Dolma 风格的嵌套格式**：
+The importer expects one JSON object per line (`.jsonl` or `.json.gz`), in the
+**Dolma-style nested format**:
 
 ```json
-{"id": "doc-1", "text": "正文内容……", "metadata": {"title": "标题", "url": "https://..."}}
+{"id": "doc-1", "text": "body text…", "metadata": {"title": "Title", "url": "https://..."}}
 ```
 
-| JSONL 字段        | → Milvus 字段 | 说明 |
-|-------------------|---------------|------|
-| `metadata.title`  | `title`       | 缺省为空串 |
-| `metadata.url`    | `url`         | 缺省回退到 `id` |
-| `text`            | `doc` + 向量源 | **必填**，为空则整行跳过 |
-| `id`              | 内部 doc_id   | 缺省为 `doc_{行号}` |
+| JSONL field       | → Milvus field | Notes |
+|-------------------|----------------|-------|
+| `metadata.title`  | `title`        | Defaults to empty string |
+| `metadata.url`    | `url`          | Falls back to `id` if missing |
+| `text`            | `doc` + vector source | **Required**; the line is skipped if empty |
+| `id`              | internal doc_id | Defaults to `doc_{line_number}` |
 
-> ⚠️ `title` / `url` 嵌在 `metadata` 里，不是顶层字段；`text` 在顶层。
+> ⚠️ `title` / `url` are nested under `metadata`, not top-level; `text` is top-level.
 
-#### 2b.（可选）转换 serper / Google 搜索结果
+#### 2b. (Optional) Convert serper / Google search results
 
-如果你的原始数据是 serper 扁平格式（顶层 `link` / `title` / `content` / `snippet`），
-先用转换脚本对齐字段：
+If your raw data is in the flat serper format (top-level `link` / `title` / `content` / `snippet`),
+align the fields first with the conversion script:
 
 ```bash
 python tools/convert_serper.py raw_serper.jsonl corpus.jsonl --dedup --min-chars 50
-# link → metadata.url, title → metadata.title, content → text（空则回退 snippet）
+# link → metadata.url, title → metadata.title, content → text (falls back to snippet if empty)
 ```
 
-#### 2c. 配置并导入
+#### 2c. Configure and import
 
-编辑 `config.py`：
+Edit `config.py`:
 
 ```python
-DATA_FOLDER_PATH = "/path/to/your/corpus"   # 批量模式
+DATA_FOLDER_PATH = "/path/to/your/corpus"   # batch mode
 DATA_FILE_PATTERN = "*.jsonl"
 BGE_MODEL_PATH = "/path/to/bge-m3"
 DATA_COLLECTION_NAME = "litesearch"
-ENABLE_DISKANN = False     # 10M+ 文档建议 True
+ENABLE_DISKANN = False     # recommended True for 10M+ documents
 ```
 
-然后导入：
+Then import:
 
 ```bash
 python data.py
@@ -146,21 +147,21 @@ python data.py
 
 ### 3. Serve search
 
-`server/` 是独立配置的。编辑 `server/diskann_config.py`（或用环境变量）：
+`server/` is configured independently. Edit `server/diskann_config.py` (or use environment variables):
 
 ```python
 API_MILVUS_URI = "http://localhost:19530"
-SEARCH_COLLECTION_NAME = "litesearch"   # 与导入端一致
+SEARCH_COLLECTION_NAME = "litesearch"   # must match the importer
 API_BGE_MODEL_PATH = "/path/to/bge-m3"
 API_DEVICE = ["cuda:0"]
 ```
 
-启动（先 worker 后检索服务，脚本已编排）：
+Start (worker first, then the search service — the script orchestrates this):
 
 ```bash
 cd server
 REDIS_HOST=127.0.0.1 EMBED_WORKERS=1 bash start.sh
-# 停止：bash stop.sh
+# Stop: bash stop.sh
 ```
 
 ### 4. Query
@@ -187,17 +188,17 @@ curl -X POST http://localhost:8018/search \
 
 `local_rag_server.py` (port 8018):
 
-| Endpoint            | 说明 |
-|---------------------|------|
-| `POST /search`      | 单条查询，hybrid / dense / sparse |
-| `POST /batch_search`| 批量查询（一次多个 query，共享 embedding） |
-| `POST /check_url`   | 检查单个 URL 是否在集合中 |
-| `POST /batch_check_url` | 批量 URL 存在性检查 |
-| `POST /web_parser`  | 按 URL 取整篇原文（需 PostgreSQL 全文存储，见下文） |
-| `GET  /health`      | 健康检查与运行统计 |
-| `GET  /stats`       | 吞吐 / 延迟统计 |
+| Endpoint            | Description |
+|---------------------|-------------|
+| `POST /search`      | Single query, hybrid / dense / sparse |
+| `POST /batch_search`| Batch query (multiple queries at once, shared embedding) |
+| `POST /check_url`   | Check whether a single URL is in the collection |
+| `POST /batch_check_url` | Batch URL existence check |
+| `POST /web_parser`  | Fetch the full original document by URL (requires PostgreSQL full-text storage, see below) |
+| `GET  /health`      | Health check and runtime stats |
+| `GET  /stats`       | Throughput / latency stats |
 
-`/search` 请求体：
+`/search` request body:
 
 ```json
 {
@@ -211,16 +212,16 @@ curl -X POST http://localhost:8018/search \
 
 ---
 
-## 全文取数（PostgreSQL，可选）
+## Full-text fetch (PostgreSQL, optional)
 
-向量检索只返回截断的 snippet。如果研究 agent 需要读**整篇原文**，可启用 PostgreSQL
-全文存储，形成闭环：
+Vector search only returns a truncated snippet. If the research agent needs to read the
+**full original document**, enable PostgreSQL full-text storage to close the loop:
 
 ```
-导入时存全文  ──▶  PostgreSQL  ──▶  /web_parser 按 URL 取整篇正文
+store full text at import  ──▶  PostgreSQL  ──▶  /web_parser fetches full body by URL
 ```
 
-**1) 导入时把全文写入 PostgreSQL** —— 在 `config.py`：
+**1) Write full text to PostgreSQL at import time** — in `config.py`:
 
 ```python
 ENABLE_SQL_STORAGE = True
@@ -229,53 +230,53 @@ SQL_DATABASE = "postgres"; SQL_USER = "postgres"; SQL_PASSWORD = "..."
 SQL_SCHEMA = "litesearch_sql"; SQL_TABLE = "documents"
 ```
 
-然后正常 `python data.py`，会同时写 Milvus（向量）和 PostgreSQL（全文）。
+Then run `python data.py` as usual — it writes both Milvus (vectors) and PostgreSQL (full text).
 
-**2) 检索后端开启全文取数** —— 在 `server/diskann_config.py`（或环境变量），
-SQL 连接参数需与导入端一致：
+**2) Enable full-text fetch on the backend** — in `server/diskann_config.py` (or environment
+variables); the SQL connection parameters must match the importer:
 
 ```python
-ENABLE_SQL_FULLTEXT = True   # 或 export ENABLE_SQL_FULLTEXT=true
+ENABLE_SQL_FULLTEXT = True   # or export ENABLE_SQL_FULLTEXT=true
 # SQL_HOST / SQL_PORT / SQL_DATABASE / SQL_USER / SQL_PASSWORD / SQL_SCHEMA / SQL_TABLE
 ```
 
-**3) 按 URL 取全文：**
+**3) Fetch full text by URL:**
 
 ```bash
 curl -X POST http://localhost:8018/web_parser \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.python.org/"}'
-# → {"found": true, "url": "...", "title": "...", "text": "整篇正文..."}
+# → {"found": true, "url": "...", "title": "...", "text": "full body text..."}
 ```
 
-> SQL 默认关闭（`ENABLE_SQL_STORAGE=False` / `ENABLE_SQL_FULLTEXT=False`），不影响纯
-> 向量检索。后端启动时若 SQL 未启用或 PostgreSQL 不可达，会自动退化，`/web_parser`
-> 返回 503，其余接口正常。
+> SQL is off by default (`ENABLE_SQL_STORAGE=False` / `ENABLE_SQL_FULLTEXT=False`), which does
+> not affect pure vector search. If SQL is disabled or PostgreSQL is unreachable at startup, the
+> backend degrades gracefully: `/web_parser` returns 503 while all other endpoints work normally.
 
 ---
 
 ## Configuration cheatsheet
 
-### Index 构建 (`config.py`)
-- `ENABLE_BATCH_MODE` — 批量文件夹 vs 单文件
-- `ENABLE_DISKANN` — 千万级数据用 DISKANN（FP32 磁盘索引）；否则内存 HNSW
-- `ENABLE_SQL_STORAGE` — 是否把全文存入 PostgreSQL（用于取整篇文档）
+### Index build (`config.py`)
+- `ENABLE_BATCH_MODE` — batch folder vs. single file
+- `ENABLE_DISKANN` — DISKANN for tens-of-millions scale (FP32 disk index); otherwise in-memory HNSW
+- `ENABLE_SQL_STORAGE` — whether to store full text in PostgreSQL (for full-document fetch)
 - `DATA_IMPORT_STRATEGY` — `append` / `overwrite` / `ask`
-- `MULTIPROCESS_WORKERS` — 字段抽取多进程数
+- `MULTIPROCESS_WORKERS` — number of processes for field extraction
 
-### Serve (`server/diskann_config.py`，支持环境变量)
+### Serve (`server/diskann_config.py`, supports environment variables)
 - `MILVUS_URI`, `SEARCH_COLLECTION`, `BGE_MODEL_PATH`, `WORKER_GPU`
-- `DISKANN_SEARCH_LIST` — 搜索精度/速度权衡（50–300）
-- 多卡部署：为每个 `embedding_worker.py` 进程设置不同的 `WORKER_GPU=cuda:N`
+- `DISKANN_SEARCH_LIST` — search accuracy/speed trade-off (50–300)
+- Multi-GPU: set a different `WORKER_GPU=cuda:N` for each `embedding_worker.py` process
 
-### Redis（检索后端 ↔ worker）
-- `REDIS_HOST` / `REDIS_PORT` / `INPUT_QUEUE`（默认 `127.0.0.1:6379` / `embed_queue`）
+### Redis (search backend ↔ worker)
+- `REDIS_HOST` / `REDIS_PORT` / `INPUT_QUEUE` (defaults: `127.0.0.1:6379` / `embed_queue`)
 
 ---
 
 ## Notes
 
-- **Hybrid search** 融合 BGE-M3 的 dense（语义）+ sparse（关键词）向量，由
-  `WeightedRanker(sparse_weight, dense_weight)` 加权。
-- **DISKANN 要求 FP32**；非 DISKANN 模式使用内存 HNSW。
-- Embedding 与检索通过 Redis 解耦：可独立扩容 GPU worker，互不阻塞。
+- **Hybrid search** fuses BGE-M3's dense (semantic) + sparse (keyword) vectors, weighted by
+  `WeightedRanker(sparse_weight, dense_weight)`.
+- **DISKANN requires FP32**; non-DISKANN mode uses in-memory HNSW.
+- Embedding and retrieval are decoupled via Redis: scale GPU workers independently without blocking.

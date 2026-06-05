@@ -769,6 +769,7 @@
       <a href="#tldr">TL;DR</a>
       <a href="#results">Results</a>
       <a href="#method">Method</a>
+      <a href="#quickstart">Quick Start</a>
       <a href="#trajectories">Trajectories</a>
       <a href="#bibtex">BibTeX</a>
     </div>
@@ -904,6 +905,42 @@
       <img src="static/overview.png" alt="LiteResearcher framework overview">
       <figcaption>Overview of the LiteResearcher training framework.</figcaption>
     </figure>
+  </section>
+
+  <!-- Quick Start: Local Environment -->
+  <section id="quickstart">
+    <div class="section-eyebrow">Quick Start</div>
+    <h2>Build the local environment<span class="punct">.</span></h2>
+    <p>
+      The local search/browse environment (BGE-M3 + Milvus hybrid search) is open-sourced under
+      <a href="https://github.com/simplex-ai-inc/LiteResearcher/tree/main/Environment" target="_blank">
+      <code>Environment/</code></a>, and the ~32M-record corpus is on
+      <a href="https://huggingface.co/datasets/simplex-ai-inc/LiteResearcher-Corpus" target="_blank">HuggingFace</a>.
+      Stand up your own local search tool in four steps:
+    </p>
+    <div class="bibtex-box">
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('quickstart-text').textContent)">Copy</button>
+      <pre id="quickstart-text"># 0. Install (also needs local BGE-M3 weights + a Redis instance)
+pip install -r requirements.txt
+
+# 1. Start Milvus (edit milvus_config/.env first)
+cd milvus_config && docker-compose up -d
+
+# 2. Download the released 32M corpus and decompress
+huggingface-cli download simplex-ai-inc/LiteResearcher-Corpus \
+  serper_test_text.jsonl.zst --repo-type dataset --local-dir ./corpus
+zstd -d ./corpus/serper_test_text.jsonl.zst
+
+# 3. Build the index (configure paths/collection in config.py)
+python data.py
+
+# 4. Serve hybrid search at :8018
+cd server && REDIS_HOST=127.0.0.1 EMBED_WORKERS=1 bash start.sh</pre>
+    </div>
+    <p style="margin-top:14px;">
+      Full setup, API reference, and optional PostgreSQL full-text fetch are documented in the
+      <a href="https://github.com/simplex-ai-inc/LiteResearcher/tree/main/Environment" target="_blank">Environment README</a>.
+    </p>
   </section>
 
   <!-- Benchmark Results -->
