@@ -301,6 +301,22 @@
     .cb-side.ours .cb-sub { color: #d9a441; }
     .cb-arrow { font-size: 1.4rem; color: var(--accent); font-weight: 300; }
 
+    /* lev8 product block */
+    .lev8-block {
+      margin-top: 26px; padding: 28px 30px;
+      border: 1px solid var(--line); border-radius: 18px;
+      background: var(--grad-soft);
+    }
+    .lev8-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .lev8-name { font-size: 1.3rem; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+    .lev8-tag { font-size: 0.8rem; color: var(--muted); }
+    .lev8-points { display: grid; gap: 12px; margin-bottom: 20px; }
+    .lev8-pt { font-size: 0.95rem; color: var(--text); line-height: 1.55; }
+    .lev8-pt strong { color: var(--ink); font-weight: 600; }
+    .lev8-arrow { color: var(--accent); font-weight: 600; margin-right: 6px; }
+    .lev8-cta { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--accent-deep); text-decoration: none; }
+    .lev8-cta:hover { text-decoration: underline; }
+
     /* CTA band */
     .cta-band {
       margin: 56px 0 8px; padding: 48px 40px; border-radius: 22px;
@@ -573,6 +589,28 @@
           <div class="cb-sub">zero marginal cost · 100% saved</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Powering lev8 -->
+  <section>
+    <div class="section-eyebrow">From benchmark to product</div>
+    <h2>The engine behind agentic search at scale<span class="punct">.</span></h2>
+    <div class="prose">
+      <p>Benchmarks are the proof — the product is the point. LiteResearcher is the deep-research engine inside <strong>lev8</strong>, Simplex AI's go-to-market platform that runs <strong>cutting-edge parallel agentic search</strong> across the live web to deliver frontier-grade <strong>company and people deep search</strong>.</p>
+      <p>This is why <em>tiny and fast</em> is a commercial unlock, not just a research result. A frontier-sized model is too slow and too costly to fan out across hundreds of sources for every query. A 4B agent at frontier quality — 10–46× faster, pennies per task — makes <strong>massively parallel agentic search economically real</strong>: hundreds of agents researching at once, human-level depth at machine-level breadth.</p>
+    </div>
+    <div class="lev8-block">
+      <div class="lev8-head">
+        <span class="lev8-name">lev8</span>
+        <span class="lev8-tag">Simplex AI's go-to-market platform</span>
+      </div>
+      <div class="lev8-points">
+        <div class="lev8-pt"><span class="lev8-arrow">→</span><strong>Parallel agentic search</strong> — hundreds of deep-research agents fan out across the live web per query, viable only when every agent is tiny, fast, and cheap.</div>
+        <div class="lev8-pt"><span class="lev8-arrow">→</span><strong>Company &amp; people deep search</strong> — frontier-grade research on any organization or person, synthesized into a 360° profile.</div>
+        <div class="lev8-pt"><span class="lev8-arrow">→</span><strong>Live-web synthesis at production cost</strong> — human-level depth at machine-level breadth, at unit economics that actually ship.</div>
+      </div>
+      <a class="lev8-cta" href="https://lev8.com" target="_blank">Explore lev8 →</a>
     </div>
   </section>
 
