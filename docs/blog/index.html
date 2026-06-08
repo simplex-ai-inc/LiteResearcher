@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Introducing LiteResearcher — frontier deep research in a 4B model | Simplex AI</title>
+  <meta name="description" content="LiteResearcher-4B is the open-source state of the art for deep research — 71.3 on GAIA, 78.0 on Xbench-DeepSearch. A 4B agent that tops GPT-5-high on Xbench and matches Claude-4.5-Sonnet on GAIA, beating models up to 8× its size at 10–46× the speed.">
+
+  <!-- Open Graph / social cards (for launch) -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Introducing LiteResearcher — frontier deep research in a 4B model">
+  <meta property="og:description" content="A 4B agent that tops GPT-5-high on Xbench-DeepSearch and matches Claude-4.5-Sonnet on GAIA — beating models up to 8× its size, 10–46× faster and cheaper.">
+  <meta property="og:image" content="../static/compare.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Introducing LiteResearcher — frontier deep research in a 4B model">
+  <meta name="twitter:description" content="A 4B agent that tops GPT-5-high on Xbench-DeepSearch and matches Claude-4.5-Sonnet on GAIA — 10–46× faster and a fraction of the cost.">
+  <meta name="twitter:image" content="../static/compare.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --text: #3f3f46;
+      --muted: #737373;
+      --faint: #e7e5e4;
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --accent: #f59e0b;       /* amber, matches Simplex yellow drop */
+      --accent-deep: #b45309;
+      --accent-soft: #fef3c7;
+      --line: #e7e5e4;
+      --grad-soft: linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: "ss01", "cv11";
+    }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+    .narrow { max-width: 760px; }
+    a { color: var(--accent-deep); }
+
+    /* Sticky nav */
+    .topnav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(250,250,249,.78);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topnav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 10px 32px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .topnav-brand { display: flex; align-items: center; text-decoration: none; }
+    .brand-simplex {
+      font-size: 0.95rem; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.015em;
+    }
+    .brand-simplex .sep { color: var(--faint); margin: 0 9px; font-weight: 400; }
+    .brand-simplex .tag { color: var(--muted); font-weight: 500; }
+    .topnav-links { display: flex; gap: 2px; flex-wrap: wrap; }
+    .topnav-links a {
+      font-size: 0.85rem; color: var(--muted); text-decoration: none;
+      padding: 7px 14px; border-radius: 999px; font-weight: 500;
+      transition: all .15s ease;
+    }
+    .topnav-links a:hover { color: var(--ink); background: #f5f5f4; }
+    .topnav-links a.cta { color: #fff; background: var(--ink); }
+    .topnav-links a.cta:hover { background: #2a2a2a; }
+    @media (max-width: 720px) {
+      .topnav-links a { padding: 6px 10px; font-size: 0.8rem; }
+      .topnav-links a.hide-sm { display: none; }
+    }
+
+    /* Article hero */
+    .post-hero { padding: 64px 0 8px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; background: var(--panel);
+      border: 1px solid var(--line); border-radius: 999px;
+      font-size: 0.72rem; color: var(--text); font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 26px;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); display: inline-block; }
+    .post-hero h1 {
+      font-size: clamp(2.3rem, 5vw, 3.6rem);
+      font-weight: 600; line-height: 1.08;
+      letter-spacing: -0.038em; color: var(--ink);
+      max-width: 18ch; margin-bottom: 22px;
+    }
+    .post-hero h1 .punct { color: var(--accent); }
+    .post-hero .lede {
+      font-size: 1.18rem; color: var(--text); max-width: 60ch;
+      line-height: 1.55; margin-bottom: 28px;
+    }
+    .post-hero .lede .num { color: var(--ink); font-weight: 600; font-feature-settings: "tnum"; }
+    .post-hero .lede .pill {
+      display: inline-flex; align-items: center; padding: 1px 9px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent-deep); font-weight: 600;
+      font-size: 0.95em; white-space: nowrap;
+    }
+    .byline {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      font-size: 0.88rem; color: var(--muted); margin-bottom: 30px;
+    }
+    .byline .author { color: var(--ink); font-weight: 600; }
+    .byline .sep { color: var(--faint); }
+
+    /* Buttons */
+    .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 20px; border-radius: 999px;
+      font-size: 0.88rem; font-weight: 500; text-decoration: none;
+      transition: all 0.15s ease; border: 1px solid transparent;
+      letter-spacing: -0.005em; cursor: pointer;
+    }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-primary:hover { background: #2a2a2a; transform: translateY(-1px); }
+    .btn-outline { border: 1px solid var(--line); color: var(--ink); background: var(--panel); }
+    .btn-outline:hover { border-color: var(--ink); transform: translateY(-1px); }
+    .btn svg { width: 15px; height: 15px; }
+
+    /* Cover image */
+    .cover { margin: 38px 0 8px; }
+    .cover img {
+      width: 100%; height: auto; display: block;
+      border: 1px solid var(--line); border-radius: 18px;
+      background: var(--panel);
+    }
+    .cover figcaption, .figure figcaption {
+      font-size: 0.82rem; color: var(--muted); margin-top: 12px;
+      text-align: center; line-height: 1.5;
+    }
+
+    /* Hero leaderboard chart */
+    .hero-chart {
+      margin: 38px 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px 30px 24px;
+      background: var(--panel);
+    }
+    .hc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .hc-title { font-size: 0.95rem; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+    .hc-note { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; white-space: nowrap; }
+    .hc-rows { display: grid; gap: 11px; }
+    .hc-row { display: grid; grid-template-columns: 200px 1fr 46px; align-items: center; gap: 14px; }
+    .hc-name { font-size: 0.85rem; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hc-row.ours .hc-name { color: var(--ink); font-weight: 700; }
+    .hc-tag { font-size: 0.64rem; color: var(--muted); background: #f5f5f4; padding: 1px 6px; border-radius: 5px; margin-left: 5px; font-weight: 600; }
+    .hc-row.ours .hc-tag { color: var(--accent-deep); background: var(--accent-soft); }
+    .hc-track { height: 12px; background: #f1f0ee; border-radius: 999px; overflow: hidden; }
+    .hc-fill { display: block; height: 100%; background: #d4d4d4; border-radius: 999px; }
+    .hc-row.ours .hc-fill { background: var(--accent); }
+    .hc-score { font-size: 0.9rem; font-weight: 600; color: var(--text); text-align: right; font-feature-settings: "tnum"; }
+    .hc-row.ours .hc-score { color: var(--ink); }
+    .hero-chart figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 18px; line-height: 1.5; text-align: left; }
+    @media (max-width: 600px) {
+      .hero-chart { padding: 20px 18px; }
+      .hc-row { grid-template-columns: 112px 1fr 38px; gap: 8px; }
+      .hc-name { font-size: 0.72rem; }
+      .hc-tag { display: none; }
+    }
+
+    /* Big-number stat strip (lev8) */
+    .stat-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px; background: var(--line); border: 1px solid var(--line);
+      border-radius: 18px; overflow: hidden; margin: 44px 0;
+    }
+    .stat-cell { background: var(--panel); padding: 26px 22px; text-align: left; }
+    .stat-cell .num {
+      font-size: clamp(2.1rem, 3.6vw, 2.9rem); font-weight: 300; color: var(--ink);
+      letter-spacing: -0.04em; line-height: 1; display: block; font-feature-settings: "tnum";
+    }
+    .stat-cell .num .punct, .stat-cell .num .slash { color: var(--accent); font-weight: 400; }
+    .stat-cell .label { font-size: 0.84rem; color: var(--ink); margin-top: 12px; font-weight: 600; }
+    .stat-cell .detail { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+
+    /* Prose sections */
+    section { padding: 30px 0; }
+    .section-eyebrow {
+      display: inline-block; font-size: 0.7rem; color: #a3a3a3;
+      letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; margin-bottom: 18px;
+    }
+    section h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 600; line-height: 1.12;
+      margin-bottom: 20px; color: var(--ink); letter-spacing: -0.028em;
+    }
+    section h2 .punct { color: var(--accent); }
+    .prose p {
+      font-size: 1.05rem; color: var(--text); margin-bottom: 18px; max-width: 68ch;
+    }
+    .prose p strong { color: var(--ink); font-weight: 600; }
+    .prose .lead-p { font-size: 1.18rem; color: var(--ink); line-height: 1.55; }
+
+    /* Numbered feature rows (lev8) */
+    .features { margin: 18px 0; display: grid; gap: 2px; }
+    .feature {
+      display: grid; grid-template-columns: 64px 1fr; gap: 22px;
+      padding: 30px 4px; border-top: 1px solid var(--line); align-items: start;
+    }
+    .feature:last-child { border-bottom: 1px solid var(--line); }
+    .feature .fnum {
+      font-size: 1.05rem; font-weight: 600; color: var(--accent);
+      font-feature-settings: "tnum"; letter-spacing: 0.02em; padding-top: 4px;
+    }
+    .feature h3 {
+      font-size: 1.32rem; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.25;
+    }
+    .feature p { font-size: 0.99rem; color: var(--text); max-width: 64ch; }
+    .feature p .hl { color: var(--ink); font-weight: 600; }
+    @media (max-width: 600px) {
+      .feature { grid-template-columns: 1fr; gap: 8px; }
+      .feature .fnum { padding-top: 0; }
+    }
+
+    /* How-we-built steps */
+    .steps { margin: 8px 0 8px; }
+    .step { padding: 26px 0; border-top: 1px solid var(--line); }
+    .step:first-child { border-top: none; }
+    .step .kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent-deep); background: var(--accent-soft);
+      padding: 4px 11px; border-radius: 999px; margin-bottom: 14px;
+    }
+    .step h3 { font-size: 1.25rem; font-weight: 600; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.02em; }
+    .step p { font-size: 1rem; color: var(--text); max-width: 66ch; }
+
+    .figure { margin: 30px 0; }
+    .figure img {
+      width: 100%; height: auto; display: block;
+      border: 1px solid var(--line); border-radius: 16px; background: var(--panel);
+    }
+
+    /* Pull quote */
+    .pullquote {
+      margin: 40px 0; padding: 28px 32px;
+      border-left: 3px solid var(--accent); background: var(--grad-soft);
+      border-radius: 0 14px 14px 0;
+    }
+    .pullquote p { font-size: 1.22rem; color: var(--ink); font-weight: 500; line-height: 1.5; max-width: 64ch; letter-spacing: -0.01em; }
+
+    /* Compact result table */
+    .mini-table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 0.92rem; }
+    .mini-table th, .mini-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .mini-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+    .mini-table td.model { color: var(--ink); font-weight: 600; }
+    .mini-table tr.ours td { background: var(--accent-soft); }
+    .mini-table tr.ours td.model { color: var(--accent-deep); }
+    .mini-table td .num { font-feature-settings: "tnum"; color: var(--ink); font-weight: 600; }
+
+    /* Company capability cards */
+    .cap-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--line); border: 1px solid var(--line);
+      border-radius: 16px; overflow: hidden; margin-top: 26px;
+    }
+    @media (max-width: 640px) { .cap-row { grid-template-columns: 1fr; } }
+    .cap { background: var(--panel); padding: 22px 20px; }
+    .cap-k { font-size: 0.92rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.01em; }
+    .cap-v { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+
+    /* Cost banner */
+    .cost-banner {
+      margin-top: 26px; padding: 32px;
+      background: #111113; border: 1px solid #26262a;
+      border-radius: 18px; color: #fff;
+    }
+    .cb-head {
+      font-size: 0.72rem; color: #8a8a90; text-transform: uppercase;
+      letter-spacing: 0.12em; font-weight: 600; margin-bottom: 26px; text-align: center;
+    }
+    .cb-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+    @media (max-width: 600px) { .cb-grid { grid-template-columns: 1fr; gap: 18px; } .cb-arrow { transform: rotate(90deg); } }
+    .cb-side { text-align: center; padding: 8px 18px; border-radius: 14px; }
+    .cb-side.ours { background: radial-gradient(120% 130% at 50% 0%, rgba(245,158,11,0.16) 0%, rgba(245,158,11,0) 72%); }
+    .cb-label { font-size: 0.7rem; color: #8a8a90; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 14px; }
+    .cb-side.ours .cb-label { color: var(--accent); }
+    .cb-fig {
+      font-size: clamp(2.4rem, 5vw, 3.4rem); font-weight: 300; letter-spacing: -0.04em;
+      line-height: 1; color: #fff; font-feature-settings: "tnum";
+    }
+    .cb-fig.muted { color: #6b6b70; text-decoration: line-through; text-decoration-color: #44444a; }
+    .cb-side.ours .cb-fig { color: var(--accent); font-weight: 400; }
+    .cb-sub { font-size: 0.8rem; color: #8a8a90; margin-top: 14px; line-height: 1.45; }
+    .cb-side.ours .cb-sub { color: #d9a441; }
+    .cb-arrow { font-size: 1.4rem; color: var(--accent); font-weight: 300; }
+
+    /* CTA band */
+    .cta-band {
+      margin: 56px 0 8px; padding: 48px 40px; border-radius: 22px;
+      background: var(--ink); color: #fff; text-align: center;
+    }
+    .cta-band h2 { color: #fff; font-size: clamp(1.7rem, 3vw, 2.2rem); margin-bottom: 14px; letter-spacing: -0.025em; }
+    .cta-band h2 .punct { color: var(--accent); }
+    .cta-band p { color: #d4d4d4; max-width: 56ch; margin: 0 auto 26px; font-size: 1.02rem; }
+    .cta-band .buttons { justify-content: center; }
+    .cta-band .btn-primary { background: var(--accent); color: #1a1a1a; font-weight: 600; }
+    .cta-band .btn-primary:hover { background: #fbbf24; }
+    .cta-band .btn-outline { background: transparent; border-color: #3f3f46; color: #fff; }
+    .cta-band .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,.06); }
+
+    /* Footer */
+    footer {
+      padding: 56px 0 36px; font-size: 0.85rem; color: var(--muted);
+      border-top: 1px solid var(--line); background: var(--panel); margin-top: 32px;
+    }
+    footer .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 36px; margin-bottom: 28px; }
+    @media (max-width: 640px) { footer .foot-grid { grid-template-columns: 1fr; gap: 24px; } }
+    footer .foot-grid h5 {
+      font-size: 0.78rem; color: var(--muted); margin-bottom: 14px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: .14em;
+    }
+    footer .foot-grid a {
+      color: var(--text); text-decoration: none; display: block; padding: 3px 0;
+      font-weight: 500; transition: color .15s ease;
+    }
+    footer .foot-grid a:hover { color: var(--ink); }
+    footer .foot-bottom {
+      text-align: left; padding-top: 22px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 0.8rem;
+    }
+    footer .foot-bottom a { color: var(--text); }
+    footer .foot-bottom .foot-dot { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- Sticky top nav -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="topnav-brand" href="../index.html">
+      <span class="brand-simplex">Simplex&nbsp;AI<span class="sep">/</span><span class="tag">Blog</span></span>
+    </a>
+    <div class="topnav-links">
+      <a href="../index.html" class="hide-sm">Project page</a>
+      <a href="https://github.com/simplex-ai-inc/LiteResearcher" target="_blank" class="hide-sm">GitHub</a>
+      <a href="https://arxiv.org/abs/2604.17931" target="_blank" class="cta">Read the paper</a>
+    </div>
+  </div>
+</nav>
+
+<article class="container narrow">
+
+  <!-- Hero / announcement -->
+  <header class="post-hero">
+    <span class="eyebrow"><span class="dot"></span>Announcing LiteResearcher &middot; 2026</span>
+    <h1>A 4B agent that researches like a <span class="punct">frontier</span> model.</h1>
+    <p class="lede">
+      <strong>LiteResearcher-4B</strong> is the new open-source state of the art for deep research — <span class="num">71.3</span> on GAIA and <span class="num">78.0</span> on Xbench-DeepSearch. It beats open agents up to <span class="num">8×</span> its size, matches <strong>Claude-4.5-Sonnet</strong> on GAIA, and tops <strong>GPT-5-high</strong> on Xbench — at <span class="num">10–46×</span> the speed and a fraction of the cost.
+    </p>
+    <div class="byline">
+      <span class="author">Simplex AI Research</span>
+      <span class="sep">&bull;</span>
+      <span>June 2026</span>
+      <span class="sep">&bull;</span>
+      <span>8 min read</span>
+    </div>
+  </header>
+
+  <!-- Hero leaderboard chart -->
+  <figure class="hero-chart">
+    <div class="hc-head">
+      <span class="hc-title">Xbench-DeepSearch accuracy (%)</span>
+      <span class="hc-note">higher is better</span>
+    </div>
+    <div class="hc-rows">
+      <div class="hc-row ours">
+        <span class="hc-name">LiteResearcher-4B<span class="hc-tag">4B</span></span>
+        <span class="hc-track"><span class="hc-fill" style="width:92%"></span></span>
+        <span class="hc-score">78.0</span>
+      </div>
+      <div class="hc-row">
+        <span class="hc-name">GPT-5-high<span class="hc-tag">frontier</span></span>
+        <span class="hc-track"><span class="hc-fill" style="width:91%"></span></span>
+        <span class="hc-score">77.8</span>
+      </div>
+      <div class="hc-row">
+        <span class="hc-name">Tongyi DeepResearch<span class="hc-tag">30B</span></span>
+        <span class="hc-track"><span class="hc-fill" style="width:80%"></span></span>
+        <span class="hc-score">75.0</span>
+      </div>
+      <div class="hc-row">
+        <span class="hc-name">GLM-4.6<span class="hc-tag">frontier</span></span>
+        <span class="hc-track"><span class="hc-fill" style="width:60%"></span></span>
+        <span class="hc-score">70.0</span>
+      </div>
+      <div class="hc-row">
+        <span class="hc-name">Claude-4.5-Sonnet<span class="hc-tag">frontier</span></span>
+        <span class="hc-track"><span class="hc-fill" style="width:44%"></span></span>
+        <span class="hc-score">66.0</span>
+      </div>
+    </div>
+    <figcaption>The only sub-30B model in the frontier band — a 4B agent topping GPT-5-high on Xbench-DeepSearch.</figcaption>
+  </figure>
+
+  <!-- Stat strip -->
+  <div class="stat-strip">
+    <div class="stat-cell">
+      <span class="num">78.0</span>
+      <div class="label">Xbench-DeepSearch</div>
+      <div class="detail">#1 — tops GPT-5-high</div>
+    </div>
+    <div class="stat-cell">
+      <span class="num">71.3</span>
+      <div class="label">GAIA</div>
+      <div class="detail">matches Claude-4.5-Sonnet</div>
+    </div>
+    <div class="stat-cell">
+      <span class="num">4B</span>
+      <div class="label">parameters</div>
+      <div class="detail">runs on a single GPU</div>
+    </div>
+    <div class="stat-cell">
+      <span class="num">10–46<span class="punct">×</span></span>
+      <div class="label">faster &amp; cheaper</div>
+      <div class="detail">lower latency per turn</div>
+    </div>
+  </div>
+
+  <!-- The short version -->
+  <section>
+    <div class="section-eyebrow">The short version</div>
+    <div class="prose">
+      <p class="lead-p">
+        Deep research is the most valuable thing an agent can do — read the live web, reason across dozens of sources, and come back with an answer you can actually trust. Until now, that meant a giant model and a giant bill.
+      </p>
+      <p>
+        <strong>LiteResearcher-4B changes the math.</strong> Frontier-grade research quality, in a model small enough to run anywhere, fast enough to deploy at volume, and cheap enough to put in front of every user. The same answers as the frontier — a fraction of the size, the latency, and the cost.
+      </p>
+    </div>
+  </section>
+
+  <!-- Highlights: numbered features -->
+  <section>
+    <div class="section-eyebrow">The highlights</div>
+    <h2>Four reasons it turns heads<span class="punct">.</span></h2>
+    <div class="features">
+      <div class="feature">
+        <div class="fnum">01</div>
+        <div>
+          <h3>Beats GPT-5-high on Xbench</h3>
+          <p>LiteResearcher-4B posts <span class="hl">78.0% on Xbench-DeepSearch</span> — the highest of any open-source agent, edging out OpenAI's GPT-5-high (77.8%). On GAIA it reaches <span class="hl">71.3%</span>, matching Claude-4.5-Sonnet (71.2%).</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="fnum">02</div>
+        <div>
+          <h3>Punches 8× above its weight</h3>
+          <p>At just <span class="hl">4B parameters</span> it outperforms open-source deep research agents up to 8× larger, like Tongyi DeepResearch 30B (70.9 / 75.0). A model you can run on a single GPU, beating systems many times its size.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="fnum">03</div>
+        <div>
+          <h3>10–46× faster rollouts in RL training</h3>
+          <p>During RL training, our local environment runs rollouts <span class="hl">10–46× faster</span> at a fraction of the cost per turn — the throughput that made training at this scale possible, and the same serving muscle that keeps inference fast in production.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="fnum">04</div>
+        <div>
+          <h3>Open weights, ready to ship</h3>
+          <p>The <span class="hl">model, data, and framework are fully open</span>. Download the 4B weights, drop them into your stack, and ship frontier-grade deep research today.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pull quote -->
+  <div class="pullquote">
+    <p>“A 4B model that tops GPT-5-high on Xbench-DeepSearch and matches Claude-4.5-Sonnet on GAIA — while running an order of magnitude faster and cheaper. This is what frontier looks like when it's small.”</p>
+  </div>
+
+  <!-- Benchmarks -->
+  <section>
+    <div class="section-eyebrow">The receipts</div>
+    <h2>A 4B model in the frontier band<span class="punct">.</span></h2>
+    <div class="prose">
+      <p>Open-source SOTA on the benchmarks that matter — topping GPT-5-high on Xbench-DeepSearch and matching Claude-4.5-Sonnet on GAIA, while small enough to serve for pennies.</p>
+    </div>
+    <table class="mini-table">
+      <thead>
+        <tr><th>System</th><th>Params</th><th>GAIA</th><th>Xbench-DS</th></tr>
+      </thead>
+      <tbody>
+        <tr class="ours">
+          <td class="model">LiteResearcher-4B</td>
+          <td>4B</td>
+          <td><span class="num">71.3</span></td>
+          <td><span class="num">78.0</span></td>
+        </tr>
+        <tr>
+          <td class="model">OpenAI GPT-5-high</td>
+          <td>frontier</td>
+          <td>76.4</td>
+          <td>77.8</td>
+        </tr>
+        <tr>
+          <td class="model">Claude-4.5-Sonnet</td>
+          <td>frontier</td>
+          <td>71.2</td>
+          <td>66.0</td>
+        </tr>
+        <tr>
+          <td class="model">GLM-4.6</td>
+          <td>frontier</td>
+          <td>71.9</td>
+          <td>70.0</td>
+        </tr>
+        <tr>
+          <td class="model">Tongyi DeepResearch</td>
+          <td>30B</td>
+          <td>70.9</td>
+          <td>75.0</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="prose">
+      <p style="font-size:0.86rem; color:var(--muted);">Full tables and ablations are in the paper.</p>
+    </div>
+  </section>
+
+  <!-- Built at Simplex AI -->
+  <section>
+    <div class="section-eyebrow">Built at Simplex AI</div>
+    <h2>Small models, production speed<span class="punct">.</span></h2>
+    <div class="prose">
+      <p>LiteResearcher didn't come out of nowhere. At <strong>Simplex AI</strong> we run a mature, high-throughput serving stack purpose-built for small, fast models — the very infrastructure that drove RL rollouts 10–46× faster, powered <strong>73.2M tool calls at zero marginal cost</strong>, and keeps inference fast in production today.</p>
+      <p>Across agentic search, retrieval, and on-device assistants, our team has shipped small-model systems into real deployment scenarios where <strong>latency and cost decide whether AI ships at all</strong>. LiteResearcher-4B is that playbook applied to deep research: frontier quality, at a size and price you can serve at scale.</p>
+    </div>
+    <div class="cap-row">
+      <div class="cap">
+        <div class="cap-k">High-throughput serving</div>
+        <div class="cap-v">A stack tuned for small models — the 10–46× edge that made this training run possible.</div>
+      </div>
+      <div class="cap">
+        <div class="cap-k">Production-grade latency</div>
+        <div class="cap-v">Sub-second tool calls and rollouts, engineered for real-time agentic workloads.</div>
+      </div>
+      <div class="cap">
+        <div class="cap-k">Deployed at scale</div>
+        <div class="cap-v">Small-model systems already running in live, cost-sensitive product scenarios.</div>
+      </div>
+    </div>
+    <div class="cost-banner">
+      <div class="cb-head">73.2M search &amp; browse calls to train LiteResearcher-4B</div>
+      <div class="cb-grid">
+        <div class="cb-side">
+          <div class="cb-label">On commercial search APIs</div>
+          <div class="cb-fig muted">$59K–$243K</div>
+          <div class="cb-sub">Serper · SerpAPI · Jina, at list price</div>
+        </div>
+        <div class="cb-arrow">→</div>
+        <div class="cb-side ours">
+          <div class="cb-label">On Simplex AI's local stack</div>
+          <div class="cb-fig">$0</div>
+          <div class="cb-sub">zero marginal cost · 100% saved</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA band -->
+  <div class="cta-band">
+    <h2>Frontier deep research, in a 4B model<span class="punct">.</span></h2>
+    <p>The model, data, and framework are open. Read the paper, grab the weights, or watch the agent work.</p>
+    <div class="buttons">
+      <a class="btn btn-primary" href="https://arxiv.org/abs/2604.17931" target="_blank">Read the paper</a>
+      <a class="btn btn-outline" href="https://github.com/simplex-ai-inc/LiteResearcher" target="_blank">GitHub</a>
+      <a class="btn btn-outline" href="https://huggingface.co/simplex-ai-inc/LiteResearcher-4B" target="_blank">🤗 Model</a>
+      <a class="btn btn-outline" href="../cases/" target="_blank">Trajectories</a>
+    </div>
+  </div>
+
+</article>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h5>LiteResearcher</h5>
+        <p style="color:#64748b; font-size:0.85rem; line-height:1.65;">
+          A low-cost, scalable Agentic RL training framework for deep research agents — built with a fully local search/browse environment.
+        </p>
+      </div>
+      <div>
+        <h5>Resources</h5>
+        <a href="https://arxiv.org/abs/2604.17931" target="_blank">arXiv paper</a>
+        <a href="https://github.com/simplex-ai-inc/LiteResearcher" target="_blank">GitHub repo</a>
+        <a href="https://huggingface.co/simplex-ai-inc/LiteResearcher-4B" target="_blank">HF model</a>
+        <a href="https://huggingface.co/datasets/simplex-ai-inc/LiteResearcher-Data" target="_blank">HF dataset</a>
+        <a href="../index.html">Project page</a>
+      </div>
+      <div>
+        <h5>Contact</h5>
+        <a href="mailto:tonyzhang@simplexai.com">tonyzhang@simplexai.com</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      &copy; 2026 Simplex AI.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
