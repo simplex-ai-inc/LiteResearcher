@@ -170,8 +170,14 @@ for raw-source layout and schema.
 ### Pre-step: SFT cold-start
 
 Stage-1 RL initializes from a Qwen3-4B that has been SFT'd on 68.2 K
-agentic-tool-use trajectories distilled from Tongyi-DeepResearch-30B. We trained
-ours with **LLaMA-Factory**:
+agentic-tool-use trajectories distilled from Tongyi-DeepResearch-30B.
+
+> **🆕 Our SFT cold-start checkpoint is released:
+> [`simplex-ai-inc/LiteResearcher-4B-SFT`](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B-SFT).**
+> You can either download it directly to start Stage-1 RL, or re-train your own
+> with the hyper-params below.
+
+We trained ours with **LLaMA-Factory**:
 
 ```bash
 # Hyper-params we used (LLaMA-Factory):
@@ -195,7 +201,8 @@ Override any of `PROJECT_DIR`, `CONDA_ENV`, `TRAIN_DATA`, `VAL_DATA`, `MODEL_PAT
 
 ```bash
 export PROJECT_DIR=/path/to/repo
-export MODEL_PATH=/path/to/qwen3-4b-sft-cold-start    # ← your SFT checkpoint
+export MODEL_PATH=$(hf download simplex-ai-inc/LiteResearcher-4B-SFT \
+                                --local-dir ./literesearcher_sft)  # ← released SFT ckpt
 bash examples/sglang_multiturn/search_browser/stage1_rag_only.sh
 ```
 

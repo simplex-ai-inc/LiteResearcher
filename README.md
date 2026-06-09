@@ -8,7 +8,8 @@
 [![Webpage](https://img.shields.io/badge/Project-Webpage-0a0a0a?logo=githubpages&logoColor=white)](https://simplex-ai-inc.github.io/LiteResearcher/)
 [![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-ffcc00?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/simplex-ai-inc/LiteResearcher-Data)
 [![Corpus](https://img.shields.io/badge/Corpus%2032M-HuggingFace-ffcc00?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/simplex-ai-inc/LiteResearcher-Corpus)
-[![Model](https://img.shields.io/badge/Model-HuggingFace-ffcc00?logo=huggingface&logoColor=black)](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B)
+[![Model](https://img.shields.io/badge/Model%20(RL)-HuggingFace-ffcc00?logo=huggingface&logoColor=black)](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B)
+[![SFT Model](https://img.shields.io/badge/Model%20(SFT%20cold--start)-HuggingFace-ffcc00?logo=huggingface&logoColor=black)](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B-SFT)
 [![Trajectories](https://img.shields.io/badge/Trajectories-Live%20Viewer-4f8cff)](https://simplex-ai-inc.github.io/LiteResearcher/cases/)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776ab?logo=python&logoColor=white)
 
@@ -104,7 +105,8 @@ hf download simplex-ai-inc/LiteResearcher-Data --repo-type dataset \
 # Stage 1 — single node 8×H20, RAG-only warmup, 32K ctx
 export TRAIN_DATA=./literesearcher_data/stage1/train.parquet
 export VAL_DATA="$TRAIN_DATA"     # no separate val bundled; verl needs a non-empty val_files
-export MODEL_PATH=/path/to/qwen3-4b-sft-cold-start
+export MODEL_PATH=$(hf download simplex-ai-inc/LiteResearcher-4B-SFT \
+                                --local-dir ./literesearcher_sft)
 bash examples/sglang_multiturn/search_browser/stage1_rag_only.sh
 
 # Stage 2 — 2 nodes × 8 H20, mix curriculum, 48K ctx, resume from Stage-1 step ~220
@@ -124,7 +126,8 @@ for the data schema and curriculum design.
 
 - [x] Evaluation code
 - [x] Project page
-- [x] Model weights ([`LiteResearcher-4B`](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B))
+- [x] Model weights — RL ([`LiteResearcher-4B`](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B))
+- [x] Model weights — SFT cold-start ([`LiteResearcher-4B-SFT`](https://huggingface.co/simplex-ai-inc/LiteResearcher-4B-SFT)) **🆕**
 - [x] Local search/browse environment setup ([`Environment/`](Environment/))
 - [x] Search corpus — 32M records ([`LiteResearcher-Corpus`](https://huggingface.co/datasets/simplex-ai-inc/LiteResearcher-Corpus))
 - [x] Training code — GRPO + curriculum RL ([`Training/`](Training/))
